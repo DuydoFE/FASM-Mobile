@@ -1,28 +1,35 @@
-import { useRouter } from 'expo-router';
 import React from 'react';
-import { Button, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { FeatureCard } from '@/components/home/feature-card';
+import { HomeHeader } from '@/components/home/home-header';
+import { RecentActivity } from '@/components/home/recent-activity';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
 export default function HomeScreen() {
-  const router = useRouter(); // Hook để điều hướng
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Welcome to Home Screen</ThemedText>
-      <ThemedText style={styles.subtitle}>
-        Đây là màn hình chính của ứng dụng.
-      </ThemedText>
-      
-      {/* Nút điều hướng sang màn hình chi tiết và truyền dữ liệu */}
-      <Button 
-        title="Go to Details screen"
-        onPress={() => router.push({
-          pathname: "/details",
-          params: { id: '123', name: 'Product A' }
-        })}
-      />
+      <HomeHeader />
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.section}>
+          <ThemedText type="defaultSemiBold">Tính năng chính</ThemedText>
+
+          <View style={styles.grid}>
+            <FeatureCard title="My Classes" subtitle="5 lớp học" color="#7b61ff" />
+            <FeatureCard title="Assignments" subtitle="12 bài tập" color="#ff8a5b" />
+            <FeatureCard title="Notifications" subtitle="3 thông báo mới" color="#ffd24a" />
+            <FeatureCard title="Grades" subtitle="Xem điểm số" color="#00b57f" />
+          </View>
+        </View>
+
+        <View style={[styles.section, { marginTop: 6 }]}> 
+          <ThemedText type="defaultSemiBold">Hoạt động gần đây</ThemedText>
+          <RecentActivity />
+        </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -30,11 +37,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: 'transparent',
+    padding: 18,
+  },
+  section: {
+    marginTop: 14,
+  },
+  grid: {
+    marginTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   subtitle: {
-    marginVertical: 15,
+    marginVertical: 6,
+  },
+  scrollContent: {
+    paddingBottom: 120,
   },
 });

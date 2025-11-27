@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -15,39 +16,52 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: Platform.select({
+          ios: {
+            position: 'absolute',
+          },
+          default: {},
+        }),
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Trang chủ',
+          title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="classes"
         options={{
-          title: 'Lớp học',
+          title: 'Classes',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="book.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="assignments"
         options={{
-          title: 'Bài tập',
+          title: 'Assignments',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.text.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="safari.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
-          title: 'Thông báo',
+          title: 'Notifications',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="bell.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Cá nhân',
+          title: 'Profile',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.crop.circle" color={color} />,
         }}
       />

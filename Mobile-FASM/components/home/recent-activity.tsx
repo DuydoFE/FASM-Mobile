@@ -1,25 +1,70 @@
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export function RecentActivity() {
+  const backgroundColor = useThemeColor({}, 'backgroundSecondary');
+  const borderColor = useThemeColor({}, 'border');
+  
   const items = [
-    { id: '1', title: 'Đã nộp bài tập OOP Lab 3', subtitle: '2 giờ trước', icon: 'chevron.left.forwardslash.chevron.right' },
-    { id: '2', title: 'Nhận điểm bài tập Database', subtitle: '1 ngày trước', icon: 'chevron.left.forwardslash.chevron.right' },
-    { id: '3', title: 'Có feedback mới từ giảng viên', subtitle: '3 ngày trước', icon: 'chevron.left.forwardslash.chevron.right' },
+    { 
+      id: '1', 
+      title: 'Submitted OOP Lab 3', 
+      subtitle: '2 hours ago', 
+      icon: 'doc.text.fill',
+      color: Colors.light.success,
+      status: 'Completed'
+    },
+    { 
+      id: '2', 
+      title: 'Database Assignment Graded', 
+      subtitle: 'Yesterday', 
+      icon: 'star.fill',
+      color: Colors.light.warning,
+      status: '8.5/10'
+    },
+    { 
+      id: '3', 
+      title: 'New Feedback from Lecturer', 
+      subtitle: '3 days ago', 
+      icon: 'bubble.left.fill',
+      color: Colors.light.info,
+      status: 'Review'
+    },
   ];
 
   return (
     <View>
-      {items.map((it) => (
-        <TouchableOpacity key={it.id} style={styles.item} activeOpacity={0.8}>
-          <View style={styles.leftIcon}>
-            <IconSymbol name={it.icon as any} size={18} color="#7b61ff" />
+      {items.map((it, index) => (
+        <TouchableOpacity 
+          key={it.id} 
+          style={[
+            styles.item, 
+            { backgroundColor, borderColor },
+            index !== items.length - 1 && styles.borderBottom
+          ]} 
+          activeOpacity={0.7}
+        >
+          <View style={[styles.iconContainer, { backgroundColor: `${it.color}15` }]}>
+            <IconSymbol name={it.icon as any} size={20} color={it.color} />
           </View>
+          
           <View style={styles.content}>
-            <ThemedText type="defaultSemiBold">{it.title}</ThemedText>
-            <ThemedText style={styles.time}>{it.subtitle}</ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={1}>
+              {it.title}
+            </ThemedText>
+            <ThemedText type="caption" style={styles.time}>
+              {it.subtitle}
+            </ThemedText>
+          </View>
+          
+          <View style={[styles.statusBadge, { backgroundColor: `${it.color}10` }]}>
+            <ThemedText type="caption" style={{ color: it.color, fontWeight: '600' }}>
+              {it.status}
+            </ThemedText>
           </View>
         </TouchableOpacity>
       ))}
@@ -31,29 +76,34 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    paddingVertical: Spacing.md,
   },
-  leftIcon: {
+  borderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(123,97,255,0.08)',
-    marginRight: 12,
+    marginRight: Spacing.md,
   },
   content: {
     flex: 1,
+    marginRight: Spacing.sm,
+  },
+  title: {
+    fontSize: 15,
+    marginBottom: 2,
   },
   time: {
-    color: '#8a8a8a',
-    marginTop: 6,
+    opacity: 0.5,
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
   },
 });

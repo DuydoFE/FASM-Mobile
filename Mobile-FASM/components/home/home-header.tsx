@@ -1,84 +1,129 @@
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function HomeHeader() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const primaryColor = useThemeColor({}, 'primary');
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+
+  const handleProfilePress = () => {
+    router.push('/(tabs)/profile');
+  };
+
   return (
-    <ThemedView style={styles.header}>
-      <View style={styles.topRow}>
-        <ThemedText type="title" style={styles.appName}>
-          FASM
-        </ThemedText>
-
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.iconBtn}>
-            <IconSymbol name="chevron.right" size={20} color="#fff" />
+    <View style={[styles.headerContainer, { paddingTop: insets.top + Spacing.sm, backgroundColor }]}>
+      <View style={styles.headerContent}>
+        <View style={styles.userInfo}>
+          <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.8}>
+            <View style={[styles.avatarContainer, { backgroundColor: primaryColor }]}>
+              <ThemedText type="defaultSemiBold" style={styles.avatarText}>JD</ThemedText>
+            </View>
           </TouchableOpacity>
+          <View style={styles.greetingContainer}>
+            <ThemedText type="caption" style={styles.greeting}>Good Morning,</ThemedText>
+            <ThemedText type="title" style={styles.username}>John Doe</ThemedText>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.authRow}>
-        <TouchableOpacity style={styles.primaryBtn}>
-          <ThemedText style={styles.primaryBtnText}>Đăng nhập</ThemedText>
+        <TouchableOpacity style={[styles.notificationBtn, { borderColor: Colors.light.border }]} activeOpacity={0.7}>
+          <IconSymbol name="bell.fill" size={20} color={textColor} />
+          <View style={styles.badge} />
         </TouchableOpacity>
       </View>
-    </ThemedView>
+      
+      <View style={styles.searchContainer}>
+        <View style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}>
+          <IconSymbol name="magnifyingglass" size={18} color={Colors.light.icon} style={styles.searchIcon} />
+          <ThemedText style={styles.placeholder}>Search assignments, classes...</ThemedText>
+        </View>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingTop: 28,
-    paddingHorizontal: 20,
-    paddingBottom: 18,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-    backgroundColor: '#7b61ff',
+  headerContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
-  topRow: {
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: Spacing.lg,
   },
-  appName: {
-    color: '#fff',
-    fontSize: 24,
-  },
-  welcome: {
-    display: 'none',
-  },
-  username: {
-    display: 'none',
-  },
-  actions: {},
-  iconBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    padding: 8,
-    borderRadius: 12,
-  },
-  authRow: {
-    marginTop: 16,
+  userInfo: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  primaryBtn: {
-    backgroundColor: '#00b57f',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    flex: 1,
     alignItems: 'center',
   },
-  primaryBtnText: {
-    color: '#fff',
-    fontWeight: '600',
+  avatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+    ...Shadows.light.sm,
   },
-  ghostBtn: {
-    display: 'none',
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 18,
   },
-  ghostBtnText: {
-    display: 'none',
+  greetingContainer: {
+    justifyContent: 'center',
+  },
+  greeting: {
+    opacity: 0.6,
+    marginBottom: 2,
+  },
+  username: {
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  notificationBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  searchContainer: {
+    marginTop: Spacing.xs,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+  },
+  searchIcon: {
+    marginRight: Spacing.sm,
+  },
+  placeholder: {
+    opacity: 0.5,
   },
 });

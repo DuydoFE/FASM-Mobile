@@ -15,10 +15,8 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        {/* Route cho nhóm tabs, không hiển thị header */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-        {/* Route cho màn hình modal */}
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         
         <Stack.Screen name="details" options={{ title: 'Chi Tiết Sản Phẩm' }} />

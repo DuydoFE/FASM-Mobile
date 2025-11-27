@@ -8,15 +8,9 @@ export function HomeHeader() {
   return (
     <ThemedView style={styles.header}>
       <View style={styles.topRow}>
-        <View>
-          <ThemedText type="title" style={styles.appName}>
-            FASM
-          </ThemedText>
-          <ThemedText style={styles.welcome}>Chào mừng trở lại!</ThemedText>
-          <ThemedText type="defaultSemiBold" style={styles.username}>
-            StudentSE2 Lastname
-          </ThemedText>
-        </View>
+        <ThemedText type="title" style={styles.appName}>
+          FASM
+        </ThemedText>
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.iconBtn}>
@@ -28,10 +22,6 @@ export function HomeHeader() {
       <View style={styles.authRow}>
         <TouchableOpacity style={styles.primaryBtn}>
           <ThemedText style={styles.primaryBtnText}>Đăng nhập</ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.ghostBtn}>
-          <ThemedText style={styles.ghostBtnText}>Đăng ký</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -54,15 +44,13 @@ const styles = StyleSheet.create({
   },
   appName: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 24,
   },
   welcome: {
-    color: 'rgba(255,255,255,0.95)',
-    marginTop: 6,
+    display: 'none',
   },
   username: {
-    color: '#fff',
-    marginTop: 4,
+    display: 'none',
   },
   actions: {},
   iconBtn: {
@@ -71,29 +59,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   authRow: {
-    marginTop: 22,
+    marginTop: 16,
     flexDirection: 'row',
     gap: 12,
   },
   primaryBtn: {
     backgroundColor: '#00b57f',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 12,
+    flex: 1,
+    alignItems: 'center',
   },
   primaryBtnText: {
     color: '#fff',
     fontWeight: '600',
   },
   ghostBtn: {
-    marginLeft: 12,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    display: 'none',
   },
   ghostBtnText: {
-    color: '#2b2b2b',
-    fontWeight: '600',
+    display: 'none',
   },
 });

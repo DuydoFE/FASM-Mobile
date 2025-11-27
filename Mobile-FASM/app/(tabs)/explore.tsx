@@ -1,112 +1,200 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
-export default function TabTwoScreen() {
+const RESOURCES = [
+  {
+    id: '1',
+    title: 'Library Resources',
+    description: 'Access digital textbooks, journals, and research papers.',
+    icon: 'book.fill',
+    color: Colors.light.primary,
+  },
+  {
+    id: '2',
+    title: 'Student Portal',
+    description: 'Manage your enrollment, grades, and financial aid.',
+    icon: 'person.crop.rectangle.fill',
+    color: Colors.light.accent,
+  },
+  {
+    id: '3',
+    title: 'Campus Map',
+    description: 'Navigate the university campus with ease.',
+    icon: 'map.fill',
+    color: Colors.light.success,
+  },
+  {
+    id: '4',
+    title: 'Events Calendar',
+    description: 'Stay updated with upcoming workshops and seminars.',
+    icon: 'calendar',
+    color: Colors.light.warning,
+  },
+  {
+    id: '5',
+    title: 'Career Center',
+    description: 'Find internships, jobs, and career guidance.',
+    icon: 'briefcase.fill',
+    color: Colors.light.info,
+  },
+];
+
+export default function ExploreScreen() {
+  const backgroundColor = useThemeColor({}, 'background');
+  const cardBg = useThemeColor({}, 'backgroundSecondary');
+  const textColor = useThemeColor({}, 'text');
+  const primaryColor = useThemeColor({}, 'primary');
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <ThemedText type="largeTitle">Explore</ThemedText>
+          <View style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}>
+            <IconSymbol name="magnifyingglass" size={18} color={Colors.light.icon} style={styles.searchIcon} />
+            <ThemedText style={styles.placeholder}>Search resources...</ThemedText>
+          </View>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.featuredSection}>
+            <View style={[styles.featuredCard, { backgroundColor: primaryColor }]}>
+              <View style={styles.featuredContent}>
+                <ThemedText type="title" style={styles.featuredTitle}>Student Handbook 2024</ThemedText>
+                <ThemedText style={styles.featuredSubtitle}>Everything you need to know about campus life.</ThemedText>
+                <TouchableOpacity style={styles.readMoreBtn}>
+                  <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>Read Now</ThemedText>
+                </TouchableOpacity>
+              </View>
+              <IconSymbol name="book.circle.fill" size={100} color="rgba(255,255,255,0.2)" style={styles.featuredIcon} />
+            </View>
+          </View>
+
+          <ThemedText type="subtitle" style={styles.sectionTitle}>Quick Links</ThemedText>
+          
+          <View style={styles.grid}>
+            {RESOURCES.map((item) => (
+              <TouchableOpacity 
+                key={item.id}
+                style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
+                  <IconSymbol name={item.icon as any} size={24} color={item.color} />
+                </View>
+                <ThemedText type="defaultSemiBold" style={styles.cardTitle}>{item.title}</ThemedText>
+                <ThemedText type="caption" style={styles.cardDesc}>{item.description}</ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  searchBar: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  searchIcon: {
+    marginRight: Spacing.sm,
+  },
+  placeholder: {
+    opacity: 0.5,
+  },
+  scrollContent: {
+    paddingBottom: Spacing.xl,
+  },
+  featuredSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  featuredCard: {
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    height: 180,
+    position: 'relative',
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  featuredContent: {
+    zIndex: 1,
+    width: '70%',
+  },
+  featuredTitle: {
+    color: '#FFFFFF',
+    marginBottom: Spacing.xs,
+  },
+  featuredSubtitle: {
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: Spacing.md,
+    fontSize: 14,
+  },
+  readMoreBtn: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.full,
+    alignSelf: 'flex-start',
+  },
+  featuredIcon: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+  },
+  sectionTitle: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: Spacing.lg,
+    justifyContent: 'space-between',
+  },
+  card: {
+    width: '48%',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    minHeight: 160,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  cardTitle: {
+    marginBottom: 4,
+  },
+  cardDesc: {
+    opacity: 0.6,
+    lineHeight: 18,
   },
 });

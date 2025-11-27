@@ -3,9 +3,12 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { authService } from '@/services/auth.service';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -24,6 +27,7 @@ export default function LoginScreen() {
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -32,8 +36,69 @@ export default function LoginScreen() {
   const borderColor = useThemeColor({}, 'border');
   const inputBg = useThemeColor({ light: '#F3F4F6', dark: '#1F2937' }, 'background');
 
-  const handleLogin = () => {
-    router.replace('/(tabs)');
+  /**
+   * Handle user login
+   * Validates input and calls authentication service
+   */
+  const handleLogin = async () => {
+    console.log('handleLogin called');
+    
+    // Validate input
+    if (!studentId.trim()) {
+      Alert.alert('Validation Error', 'Please enter your student ID');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Validation Error', 'Please enter your password');
+      return;
+    }
+
+    console.log('Starting login with:', { studentId: studentId.trim() });
+    setIsLoading(true);
+
+    try {
+      // Call login service
+      const response = await authService.login(studentId.trim(), password);
+
+      console.log('Login response received:', {
+        statusCode: response.statusCode,
+        hasData: !!response.data,
+        errors: response.errors,
+      });
+
+      if (response.statusCode === 200 && response.data) {
+        // Login successful
+        Alert.alert(
+          'Login Successful',
+          `Welcome back, ${response.data.firstName} ${response.data.lastName}!`,
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/(tabs)'),
+            },
+          ]
+        );
+      } else {
+        // Login failed - show error message
+        const errorMessage = response.errors.length > 0
+          ? response.errors[0].message
+          : response.message || 'Login failed';
+        
+        console.log('Login failed with message:', errorMessage);
+        Alert.alert('Login Failed', errorMessage);
+      }
+    } catch (error) {
+      // Handle unexpected errors
+      console.error('Login catch block error:', error);
+      Alert.alert(
+        'Error',
+        'An unexpected error occurred. Please check console for details.'
+      );
+    } finally {
+      setIsLoading(false);
+      console.log('Login attempt finished');
+    }
   };
 
   return (
@@ -132,13 +197,22 @@ export default function LoginScreen() {
               </View>
 
               <TouchableOpacity
-                style={[styles.loginButton, { backgroundColor: primaryColor }]}
+                style={[
+                  styles.loginButton,
+                  { backgroundColor: primaryColor },
+                  isLoading && styles.loginButtonDisabled,
+                ]}
                 onPress={handleLogin}
                 activeOpacity={0.8}
+                disabled={isLoading}
               >
-                <ThemedText type="defaultSemiBold" style={styles.loginButtonText}>
-                  Sign In
-                </ThemedText>
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <ThemedText type="defaultSemiBold" style={styles.loginButtonText}>
+                    Sign In
+                  </ThemedText>
+                )}
               </TouchableOpacity>
 
               <View style={styles.dividerContainer}>
@@ -269,6 +343,9 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
   dividerContainer: {
     flexDirection: 'row',

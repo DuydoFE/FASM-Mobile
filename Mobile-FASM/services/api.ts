@@ -1,5 +1,22 @@
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG, API_HEADERS } from './config/api.config';
+
+// Token storage - will be set from outside
+let storedAccessToken: string | null = null;
+
+/**
+ * Set the access token for API requests
+ */
+export const setApiAccessToken = (token: string | null): void => {
+  storedAccessToken = token;
+};
+
+/**
+ * Get the current access token
+ */
+export const getApiAccessToken = (): string | null => {
+  return storedAccessToken;
+};
 
 /**
  * API Client Configuration
@@ -25,21 +42,44 @@ class ApiClient {
   private setupInterceptors(): void {
     // Request interceptor
     this.client.interceptors.request.use(
-      (config) => {
+      (config: InternalAxiosRequestConfig) => {
+        // Check if data is FormData (handle React Native bundler quirks)
+        const isFormData = config.data && (
+          config.data instanceof FormData ||
+          (config.data.constructor && config.data.constructor.name === 'FormData') ||
+          (typeof config.data.append === 'function' && typeof config.data.getHeaders === 'undefined')
+        );
+
         // Log full request details
         console.log('=== API Request ===');
         console.log('Base URL:', config.baseURL);
         console.log('Endpoint:', config.url);
         console.log('Method:', config.method?.toUpperCase());
-        console.log('Headers:', config.headers);
-        console.log('Data:', config.data);
-        console.log('==================');
+        console.log('Is FormData:', isFormData);
+        console.log('Headers before modification:', JSON.stringify(config.headers, null, 2));
+        if (!isFormData) {
+          console.log('Data:', config.data);
+        }
 
         // Add auth token if available
-        const token = this.getStoredToken();
+        const token = storedAccessToken;
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+          console.log('Token added: Bearer', token.substring(0, 20) + '...');
+        } else {
+          console.log('No token available');
         }
+
+        // For FormData requests, let the browser/RN set the Content-Type with proper boundary
+        if (isFormData) {
+          // Remove the default Content-Type so that the browser can set it with the boundary
+          delete config.headers['Content-Type'];
+          console.log('Removed Content-Type header for FormData');
+        }
+
+        console.log('Headers after modification:', JSON.stringify(config.headers, null, 2));
+        console.log('==================');
+
         return config;
       },
       (error) => {
@@ -53,7 +93,7 @@ class ApiClient {
       (response) => {
         console.log('=== API Response ===');
         console.log('Status:', response.status);
-        console.log('Data:', response.data);
+        console.log('Data:', JSON.stringify(response.data, null, 2));
         console.log('===================');
         return response;
       },
@@ -62,33 +102,18 @@ class ApiClient {
         console.error('Error Message:', error.message);
         console.error('Error Code:', error.code);
         console.error('Response Status:', error.response?.status);
-        console.error('Response Data:', error.response?.data);
+        console.error('Response Data:', JSON.stringify(error.response?.data, null, 2));
         console.error('Request URL:', error.config?.url);
         console.error('Full Base URL:', error.config?.baseURL);
         console.error('================');
         
         if (error.response?.status === 401) {
           // Handle unauthorized - could trigger refresh token logic here
-          this.clearStoredToken();
+          storedAccessToken = null;
         }
         return Promise.reject(error);
       }
     );
-  }
-
-  /**
-   * Get stored authentication token
-   */
-  private getStoredToken(): string | null {
-    // TODO: Implement secure token storage (AsyncStorage/SecureStore)
-    return null;
-  }
-
-  /**
-   * Clear stored authentication token
-   */
-  private clearStoredToken(): void {
-    // TODO: Implement token clearing from storage
   }
 
   /**

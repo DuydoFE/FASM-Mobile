@@ -1,5 +1,8 @@
 import { AxiosError } from 'axios';
-import { InstructorAssignmentsResponse, InstructorClassesResponse } from '../types/api.types';
+import {
+  InstructorAssignmentsResponse,
+  InstructorClassesResponse
+} from '../types/api.types';
 import apiClient from './api';
 import { API_CONFIG } from './config/api.config';
 
@@ -156,6 +159,7 @@ class InstructorService {
       warnings: [],
     };
   }
+
 }
 
 export const instructorService = new InstructorService();

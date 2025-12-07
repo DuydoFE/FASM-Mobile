@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { instructorService } from '@/services/instructor.service';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -25,25 +34,26 @@ const FILTERS = ['All', 'Draft', 'Upcoming', 'Active', 'InReview', 'Closed', 'Gr
 /**
  * Get status color based on assignment status
  */
-const getStatusColor = (status: string, isOverdue: boolean): string => {
-  if (isOverdue) return Colors.light.error;
+const getStatusColor = (status: string, isOverdue: boolean, colorScheme: 'light' | 'dark'): string => {
+  const colors = Colors[colorScheme];
+  if (isOverdue) return colors.error;
   switch (status) {
     case 'Draft':
-      return Colors.light.icon;
+      return colors.icon;
     case 'Upcoming':
-      return Colors.light.primary;
+      return colors.primary;
     case 'Active':
-      return Colors.light.accent;
+      return colors.accent;
     case 'InReview':
-      return Colors.light.warning;
+      return colors.warning;
     case 'Closed':
-      return Colors.light.textSecondary;
+      return colors.textSecondary;
     case 'GradesPublished':
-      return Colors.light.success;
+      return colors.success;
     case 'Cancelled':
-      return Colors.light.error;
+      return colors.error;
     default:
-      return Colors.light.primary;
+      return colors.primary;
   }
 };
 
@@ -64,14 +74,27 @@ const formatDate = (dateString: string): string => {
 export default function AssignmentsScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
+  
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const assignments = useAppSelector(selectInstructorAssignments);
   const isLoading = useAppSelector(selectAssignmentsLoading);
   const error = useAppSelector(selectAssignmentsError);
+  
+  // Theme hooks
+  const colorScheme = useColorScheme() ?? 'light';
+  const isDark = colorScheme === 'dark';
+  const colors = Colors[colorScheme];
+  const shadows = Shadows[colorScheme];
 
   const cardBg = useThemeColor({}, 'backgroundSecondary');
   const primaryColor = useThemeColor({}, 'primary');
+  const inputBg = useThemeColor({}, 'background');
+  const modalBg = useThemeColor({}, 'backgroundSecondary');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondaryColor = useThemeColor({}, 'textSecondary');
+  const borderColor = colors.border;
+  const iconColor = colors.icon;
 
   /**
    * Fetch assignments from API
@@ -102,6 +125,7 @@ export default function AssignmentsScreen() {
     fetchAssignments();
   }, [user?.userId]);
 
+
   /**
    * Filter assignments based on active filter
    */
@@ -110,11 +134,11 @@ export default function AssignmentsScreen() {
     : assignments.filter((a) => a.uiStatus === activeFilter);
 
   const renderAssignmentItem = ({ item }: { item: InstructorAssignment }) => {
-    const statusColor = getStatusColor(item.uiStatus, item.isOverdue);
+    const statusColor = getStatusColor(item.uiStatus, item.isOverdue, colorScheme);
 
     return (
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
+        style={[styles.card, { backgroundColor: cardBg }, shadows.sm]}
         activeOpacity={0.7}
       >
         <View style={[styles.cardHeader, { borderLeftColor: statusColor }]}>
@@ -139,7 +163,7 @@ export default function AssignmentsScreen() {
           </ThemedText>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <IconSymbol name="person.2.fill" size={14} color={Colors.light.icon} />
+              <IconSymbol name="person.2.fill" size={14} color={iconColor} />
               <ThemedText type="caption" style={styles.statText}>
                 {item.submissionCount}/{item.studentCount} submitted
               </ThemedText>
@@ -149,13 +173,13 @@ export default function AssignmentsScreen() {
                 <IconSymbol
                   name={item.daysUntilDeadline < 0 ? 'exclamationmark.triangle.fill' : 'clock.fill'}
                   size={14}
-                  color={item.daysUntilDeadline < 0 ? Colors.light.error : Colors.light.icon}
+                  color={item.daysUntilDeadline < 0 ? colors.error : iconColor}
                 />
                 <ThemedText
                   type="caption"
                   style={[
                     styles.statText,
-                    item.daysUntilDeadline < 0 && { color: Colors.light.error },
+                    item.daysUntilDeadline < 0 && { color: colors.error },
                   ]}
                 >
                   {item.daysUntilDeadline < 0
@@ -167,14 +191,14 @@ export default function AssignmentsScreen() {
           </View>
         </View>
 
-        <View style={styles.cardFooter}>
+        <View style={[styles.cardFooter, { borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
           <View style={styles.dateContainer}>
-            <IconSymbol name="calendar" size={14} color={Colors.light.icon} style={styles.dateIcon} />
+            <IconSymbol name="calendar" size={14} color={iconColor} style={styles.dateIcon} />
             <ThemedText type="caption" style={styles.dateText}>
               Due: {formatDate(item.deadline)}
             </ThemedText>
           </View>
-          <IconSymbol name="chevron.right" size={16} color={Colors.light.icon} />
+          <IconSymbol name="chevron.right" size={16} color={iconColor} />
         </View>
       </TouchableOpacity>
     );
@@ -185,9 +209,6 @@ export default function AssignmentsScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <ThemedText type="largeTitle">Assignments</ThemedText>
-          <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]}>
-            <IconSymbol name="plus" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.filterContainer}>
@@ -198,12 +219,12 @@ export default function AssignmentsScreen() {
                 style={[
                   styles.filterChip,
                   activeFilter === filter && { backgroundColor: primaryColor },
-                  activeFilter !== filter && { backgroundColor: cardBg, borderWidth: 1, borderColor: Colors.light.border }
+                  activeFilter !== filter && { backgroundColor: cardBg, borderWidth: 1, borderColor }
                 ]}
                 onPress={() => setActiveFilter(filter)}
               >
-                <ThemedText 
-                  type="caption" 
+                <ThemedText
+                  type="caption"
                   style={[
                     styles.filterText,
                     activeFilter === filter && { color: '#FFFFFF' }
@@ -225,8 +246,8 @@ export default function AssignmentsScreen() {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <IconSymbol name="exclamationmark.triangle.fill" size={48} color={Colors.light.error} />
-            <ThemedText type="subtitle" style={styles.errorText}>
+            <IconSymbol name="exclamationmark.triangle.fill" size={48} color={colors.error} />
+            <ThemedText type="subtitle" style={[styles.errorText, { color: colors.error }]}>
               {error}
             </ThemedText>
             <TouchableOpacity
@@ -250,7 +271,7 @@ export default function AssignmentsScreen() {
             }
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <IconSymbol name="doc.text" size={48} color={Colors.light.icon} />
+                <IconSymbol name="doc.text" size={48} color={iconColor} />
                 <ThemedText type="subtitle" style={styles.emptyText}>
                   No assignments found
                 </ThemedText>
@@ -258,6 +279,7 @@ export default function AssignmentsScreen() {
             }
           />
         )}
+
       </SafeAreaView>
     </ThemedView>
   );
@@ -339,7 +361,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
   },
   dateContainer: {
     flexDirection: 'row',
@@ -380,7 +401,6 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: Spacing.md,
     textAlign: 'center',
-    color: Colors.light.error,
   },
   retryButton: {
     marginTop: Spacing.lg,
@@ -410,5 +430,157 @@ const styles = StyleSheet.create({
   },
   statText: {
     opacity: 0.7,
+  },
+  // Modal styles - Enhanced Pop-up Design
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  modalWrapper: {
+    maxHeight: '92%',
+  },
+  modalContainer: {
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    maxHeight: '100%',
+  },
+  modalHandleContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  modalHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: BorderRadius.full,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  modalHeaderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  cancelText: {
+    // Color set dynamically
+  },
+  modalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  modalTitle: {
+    fontSize: 18,
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  createButtonDisabled: {
+    opacity: 0.7,
+  },
+  createButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  modalContent: {
+    paddingHorizontal: Spacing.lg,
+    maxHeight: 500,
+  },
+  formSection: {
+    marginTop: Spacing.lg,
+  },
+  sectionTitle: {
+    marginBottom: Spacing.sm,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: 16,
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  selectInput: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+  },
+  pickerDropdown: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.xs,
+    maxHeight: 200,
+  },
+  pickerItem: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+  },
+  dateInput: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  numberInputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  numberInput: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    width: 80,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  // Date Picker Styles
+  datePickerContainer: {
+    borderTopWidth: 1,
+    paddingBottom: Spacing.lg,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  datePicker: {
+    height: 200,
   },
 });

@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { ApiResponse, AuthUser, LoginRequest, LoginResponse } from '../types/api.types';
-import apiClient from './api';
+import apiClient, { setApiAccessToken } from './api';
 import { API_CONFIG } from './config/api.config';
 
 /**
@@ -32,6 +32,8 @@ class AuthService {
       // Store tokens if login successful
       if (response.data.statusCode === 200 && response.data.data) {
         await this.storeAuthData(response.data.data);
+        // Set the access token for API requests
+        setApiAccessToken(response.data.data.accessToken);
       }
 
       return response.data;
@@ -87,6 +89,8 @@ class AuthService {
    */
   async logout(): Promise<void> {
     await this.clearAuthData();
+    // Clear the access token from API client
+    setApiAccessToken(null);
   }
 
   /**
@@ -116,6 +120,8 @@ class AuthService {
       // TODO: Implement secure storage using expo-secure-store
       // await SecureStore.setItemAsync('accessToken', accessToken);
       // await SecureStore.setItemAsync('refreshToken', refreshToken);
+      // Update the API client token
+      setApiAccessToken(accessToken);
       console.log('Tokens updated successfully');
     } catch (error) {
       console.error('Failed to update tokens:', error);
@@ -132,6 +138,8 @@ class AuthService {
       // await SecureStore.deleteItemAsync('accessToken');
       // await SecureStore.deleteItemAsync('refreshToken');
       // await AsyncStorage.removeItem('userData');
+      // Clear the API client token
+      setApiAccessToken(null);
       console.log('Auth data cleared successfully');
     } catch (error) {
       console.error('Failed to clear auth data:', error);

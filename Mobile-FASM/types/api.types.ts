@@ -116,3 +116,44 @@ export interface InstructorAssignmentsResponse {
   errors: ApiError[];
   warnings: ApiWarning[];
 }
+
+/**
+ * Assignment Response from API
+ */
+export interface AssignmentResponse {
+  assignmentId: number;
+  courseInstanceId: number;
+  rubricTemplateId: number | null;
+  rubricId: number | null;
+  title: string;
+  description: string | null;
+  guidelines: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  createdAt: string;
+  startDate: string | null;
+  deadline: string;
+  reviewDeadline: string | null;
+  finalDeadline: string | null;
+  numPeerReviewsRequired: number;
+  passThreshold: number | null;
+  missingReviewPenalty: number | null;
+  allowCrossClass: boolean;
+  crossClassTag: string | null;
+  instructorWeight: number;
+  peerWeight: number;
+  isBlindReview: boolean;
+  includeAIScore: boolean;
+  gradingScale: string | null;
+  courseName: string | null;
+  courseCode: string | null;
+  sectionCode: string | null;
+  campusName: string | null;
+  submissionCount: number;
+  reviewCount: number;
+  status: string;
+  uiStatus: string;
+  isActive: boolean;
+  isOverdue: boolean;
+  daysUntilDeadline: number;
+}

@@ -87,3 +87,32 @@ export interface InstructorClassesResponse {
   errors: ApiError[];
   warnings: ApiWarning[];
 }
+
+/**
+ * Instructor Assignment Types
+ * Types for instructor's assignments
+ */
+export interface InstructorAssignment {
+  assignmentId: number;
+  title: string;
+  description: string;
+  deadline: string;
+  reviewDeadline: string;
+  finalDeadline: string;
+  courseName: string;
+  sectionCode: string;
+  submissionCount: number;
+  studentCount: number;
+  isOverdue: boolean;
+  daysUntilDeadline: number;
+  status: string;
+  uiStatus: string;
+}
+
+export interface InstructorAssignmentsResponse {
+  message: string;
+  statusCode: number;
+  data: InstructorAssignment[] | null;
+  errors: ApiError[];
+  warnings: ApiWarning[];
+}

@@ -1,4 +1,4 @@
-import { InstructorClass } from '@/types/api.types';
+import { InstructorAssignment, InstructorClass } from '@/types/api.types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 /**
@@ -7,8 +7,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
  */
 interface InstructorState {
   classes: InstructorClass[];
+  assignments: InstructorAssignment[];
   isLoading: boolean;
+  isAssignmentsLoading: boolean;
   error: string | null;
+  assignmentsError: string | null;
 }
 
 /**
@@ -16,8 +19,11 @@ interface InstructorState {
  */
 const initialState: InstructorState = {
   classes: [],
+  assignments: [],
   isLoading: false,
+  isAssignmentsLoading: false,
   error: null,
+  assignmentsError: null,
 };
 
 /**
@@ -57,8 +63,35 @@ const instructorSlice = createSlice({
      */
     clearInstructorData: (state) => {
       state.classes = [];
+      state.assignments = [];
       state.isLoading = false;
+      state.isAssignmentsLoading = false;
       state.error = null;
+      state.assignmentsError = null;
+    },
+
+    /**
+     * Set assignments loading state
+     */
+    setAssignmentsLoading: (state, action: PayloadAction<boolean>) => {
+      state.isAssignmentsLoading = action.payload;
+    },
+
+    /**
+     * Set instructor assignments
+     */
+    setInstructorAssignments: (state, action: PayloadAction<InstructorAssignment[]>) => {
+      state.assignments = action.payload;
+      state.isAssignmentsLoading = false;
+      state.assignmentsError = null;
+    },
+
+    /**
+     * Set assignments error state
+     */
+    setAssignmentsError: (state, action: PayloadAction<string>) => {
+      state.assignmentsError = action.payload;
+      state.isAssignmentsLoading = false;
     },
   },
 });
@@ -69,6 +102,9 @@ export const {
   setInstructorClasses,
   setInstructorError,
   clearInstructorData,
+  setAssignmentsLoading,
+  setInstructorAssignments,
+  setAssignmentsError,
 } = instructorSlice.actions;
 
 // Export reducer
@@ -81,3 +117,9 @@ export const selectInstructorLoading = (state: { instructor: InstructorState }) 
   state.instructor.isLoading;
 export const selectInstructorError = (state: { instructor: InstructorState }) =>
   state.instructor.error;
+export const selectInstructorAssignments = (state: { instructor: InstructorState }) =>
+  state.instructor.assignments;
+export const selectAssignmentsLoading = (state: { instructor: InstructorState }) =>
+  state.instructor.isAssignmentsLoading;
+export const selectAssignmentsError = (state: { instructor: InstructorState }) =>
+  state.instructor.assignmentsError;

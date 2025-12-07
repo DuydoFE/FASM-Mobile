@@ -12,9 +12,13 @@ import { selectCurrentUser } from '@/store/slices/authSlice';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   
-  // Get user from Redux store to determine if logged in
+  // Get user from Redux store to determine if logged in and role
   const user = useAppSelector(selectCurrentUser);
   const isLoggedIn = !!user;
+  
+  // Check user role - roles is an array, check if it includes specific role
+  const isStudent = user?.roles?.includes('Student') || false;
+  const isInstructor = user?.roles?.includes('Instructor') || false;
 
   return (
     <Tabs
@@ -41,7 +45,7 @@ export default function TabLayout() {
         options={{
           title: 'Classes',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="book.fill" color={color} />,
-          // Hide tab when not logged in
+          // Show for logged in users (both Student and Instructor)
           href: isLoggedIn ? '/(tabs)/classes' : null,
         }}
       />
@@ -50,8 +54,8 @@ export default function TabLayout() {
         options={{
           title: 'Assignments',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.text.fill" color={color} />,
-          // Hide tab when not logged in
-          href: isLoggedIn ? '/(tabs)/assignments' : null,
+          // Only show for Instructor, hide for Student and not logged in
+          href: isLoggedIn && isInstructor ? '/(tabs)/assignments' : null,
         }}
       />
       <Tabs.Screen
@@ -59,7 +63,7 @@ export default function TabLayout() {
         options={{
           title: 'Explore',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="safari.fill" color={color} />,
-          // Hide tab when not logged in
+          // Show for logged in users (both Student and Instructor)
           href: isLoggedIn ? '/(tabs)/explore' : null,
         }}
       />
@@ -68,7 +72,7 @@ export default function TabLayout() {
         options={{
           title: 'Notifications',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="bell.fill" color={color} />,
-          // Hide tab when not logged in
+          // Show for logged in users (both Student and Instructor)
           href: isLoggedIn ? '/(tabs)/notifications' : null,
         }}
       />

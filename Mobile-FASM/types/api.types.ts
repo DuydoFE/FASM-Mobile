@@ -57,3 +57,79 @@ export interface AuthUser {
   roles: string[];
   campusId: number;
 }
+
+/**
+ * Course Student Types
+ * For student's enrolled classes/courses
+ */
+export interface CourseStudent {
+  courseStudentId: number;
+  courseInstanceId: number;
+  courseInstanceName: string;
+  courseCode: string;
+  courseName: string;
+  userId: number;
+  studentName: string;
+  studentEmail: string;
+  studentCode: string;
+  enrolledAt: string;
+  status: string;
+  finalGrade: number;
+  isPassed: boolean;
+  statusChangedAt: string;
+  changedByUserId: number;
+  changedByUserName: string;
+  studentCount: number;
+  instructorNames: string[];
+}
+
+export type CourseStudentResponse = ApiResponse<CourseStudent[]>;
+
+/**
+ * Enroll with Key Request/Response Types
+ * For activating pending enrollment with enrollment key
+ */
+export interface EnrollWithKeyRequest {
+  courseInstanceId: number;
+  studentUserId: number;
+  enrollKey: string;
+}
+
+export type EnrollWithKeyResponse = ApiResponse<CourseStudent>;
+
+/**
+ * Assignment Types
+ * For course assignments/tasks
+ */
+export interface Assignment {
+  assignmentId: number;
+  courseInstanceId: number;
+  rubricTemplateId: number;
+  rubricId: number;
+  title: string;
+  description: string;
+  guidelines: string;
+  fileUrl: string | null;
+  fileName: string | null;
+  createdAt: string;
+  startDate: string;
+  deadline: string;
+  reviewDeadline: string;
+  finalDeadline: string;
+  numPeerReviewsRequired: number;
+  passThreshold: number;
+  missingReviewPenalty: number;
+  allowCrossClass: boolean;
+  crossClassTag: string | null;
+  instructorWeight: number;
+  peerWeight: number;
+  isBlindReview: boolean;
+  includeAIScore: boolean;
+  gradingScale: string;
+  courseName: string;
+  courseCode: string;
+  sectionCode: string;
+  campusName: string;
+}
+
+export type AssignmentListResponse = ApiResponse<Assignment[]>;

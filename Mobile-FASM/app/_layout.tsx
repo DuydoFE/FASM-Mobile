@@ -25,6 +25,14 @@ export default function RootLayout() {
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           
           <Stack.Screen name="details" options={{ title: 'Chi Tiết Sản Phẩm' }} />
+          
+          <Stack.Screen
+            name="course-assignments"
+            options={{
+              headerShown: false,
+              title: 'Assignments'
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

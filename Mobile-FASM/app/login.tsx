@@ -4,25 +4,28 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { authService } from '@/services/auth.service';
+import { useAppDispatch } from '@/store';
+import { setCredentials } from '@/store/slices/authSlice';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
-    useColorScheme,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const colorScheme = useColorScheme();
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
@@ -68,7 +71,9 @@ export default function LoginScreen() {
       });
 
       if (response.statusCode === 200 && response.data) {
-        // Login successful
+        // Login successful - Save user data to Redux store
+        dispatch(setCredentials(response.data));
+        
         Alert.alert(
           'Login Successful',
           `Welcome back, ${response.data.firstName} ${response.data.lastName}!`,

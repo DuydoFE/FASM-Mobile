@@ -2,10 +2,31 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppSelector } from '@/store';
+import { selectCurrentUser } from '@/store/slices/authSlice';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+/**
+ * Get greeting based on current time of day
+ */
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning,';
+  if (hour < 18) return 'Good Afternoon,';
+  return 'Good Evening,';
+};
+
+/**
+ * Get initials from first and last name
+ */
+const getInitials = (firstName?: string, lastName?: string): string => {
+  const first = firstName?.charAt(0).toUpperCase() || '';
+  const last = lastName?.charAt(0).toUpperCase() || '';
+  return first + last || 'U';
+};
 
 export function HomeHeader() {
   const router = useRouter();
@@ -13,25 +34,51 @@ export function HomeHeader() {
   const primaryColor = useThemeColor({}, 'primary');
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
+  
+  // Get user from Redux store
+  const user = useAppSelector(selectCurrentUser);
+  const isLoggedIn = !!user;
+  
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : 'Guest';
+  const initials = getInitials(user?.firstName, user?.lastName);
 
   const handleProfilePress = () => {
     router.push('/(tabs)/profile');
   };
 
+  const handleLoginPress = () => {
+    router.push('/login');
+  };
+
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top + Spacing.sm, backgroundColor }]}>
       <View style={styles.headerContent}>
-        <View style={styles.userInfo}>
-          <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.8}>
-            <View style={[styles.avatarContainer, { backgroundColor: primaryColor }]}>
-              <ThemedText type="defaultSemiBold" style={styles.avatarText}>JD</ThemedText>
+        {isLoggedIn ? (
+          // Logged in: Show avatar and user info
+          <View style={styles.userInfo}>
+            <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.8}>
+              <View style={[styles.avatarContainer, { backgroundColor: primaryColor }]}>
+                <ThemedText type="defaultSemiBold" style={styles.avatarText}>{initials}</ThemedText>
+              </View>
+            </TouchableOpacity>
+            <View style={styles.greetingContainer}>
+              <ThemedText type="caption" style={styles.greeting}>{getGreeting()}</ThemedText>
+              <ThemedText type="title" style={styles.username}>{displayName}</ThemedText>
             </View>
-          </TouchableOpacity>
-          <View style={styles.greetingContainer}>
-            <ThemedText type="caption" style={styles.greeting}>Good Morning,</ThemedText>
-            <ThemedText type="title" style={styles.username}>John Doe</ThemedText>
           </View>
-        </View>
+        ) : (
+          // Not logged in: Show Login button
+          <TouchableOpacity
+            onPress={handleLoginPress}
+            style={[styles.loginButton, { backgroundColor: primaryColor }]}
+            activeOpacity={0.8}
+          >
+            <IconSymbol name="person.fill" size={18} color="#FFFFFF" style={styles.loginIcon} />
+            <ThemedText type="defaultSemiBold" style={styles.loginButtonText}>Login</ThemedText>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={[styles.notificationBtn, { borderColor: Colors.light.border }]} activeOpacity={0.7}>
           <IconSymbol name="bell.fill" size={20} color={textColor} />
@@ -125,5 +172,20 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     opacity: 0.5,
+  },
+  loginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    ...Shadows.light.sm,
+  },
+  loginIcon: {
+    marginRight: Spacing.xs,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });

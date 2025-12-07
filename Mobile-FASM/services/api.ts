@@ -1,3 +1,4 @@
+import { store } from '@/store';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { API_CONFIG, API_HEADERS } from './config/api.config';
 
@@ -77,11 +78,11 @@ class ApiClient {
   }
 
   /**
-   * Get stored authentication token
+   * Get stored authentication token from Redux store
    */
   private getStoredToken(): string | null {
-    // TODO: Implement secure token storage (AsyncStorage/SecureStore)
-    return null;
+    const state = store.getState();
+    return state.auth.accessToken;
   }
 
   /**

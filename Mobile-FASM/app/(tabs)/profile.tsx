@@ -8,20 +8,49 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { logout, selectCurrentUser } from '@/store/slices/authSlice';
+
+/**
+ * Get initials from first and last name
+ */
+const getInitials = (firstName?: string, lastName?: string): string => {
+  const first = firstName?.charAt(0).toUpperCase() || '';
+  const last = lastName?.charAt(0).toUpperCase() || '';
+  return first + last || 'U';
+};
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const backgroundColor = useThemeColor({}, 'background');
   const cardBg = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'text');
   const primaryColor = useThemeColor({}, 'primary');
   const borderColor = useThemeColor({}, 'border');
 
+  // Get user from Redux store
+  const user = useAppSelector(selectCurrentUser);
+  const isLoggedIn = !!user;
+  
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : 'Guest';
+  const email = user?.email || 'Not logged in';
+  const initials = getInitials(user?.firstName, user?.lastName);
+  const role = user?.roles?.[0] || 'User';
+
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
   const handleLogout = () => {
+    // Clear user data from Redux store
+    dispatch(logout());
     router.replace('/login');
+  };
+
+  const handleLogin = () => {
+    router.push('/login');
   };
 
   const renderSettingItem = ({ icon, title, type = 'link', value, onValueChange, color }: any) => (
@@ -53,29 +82,43 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
-          <View style={styles.header}>
-            <View style={[styles.avatarContainer, { backgroundColor: primaryColor }, Shadows.light.md]}>
-              <ThemedText type="title" style={styles.avatarText}>JD</ThemedText>
-              <View style={styles.editBadge}>
-                <IconSymbol name="pencil" size={12} color="#FFFFFF" />
+          {isLoggedIn ? (
+            // Logged in: Show user profile
+            <>
+              <View style={styles.header}>
+                <View style={[styles.avatarContainer, { backgroundColor: primaryColor }, Shadows.light.md]}>
+                  <ThemedText type="title" style={styles.avatarText}>{initials}</ThemedText>
+                  <View style={styles.editBadge}>
+                    <IconSymbol name="pencil" size={12} color="#FFFFFF" />
+                  </View>
+                </View>
+                <ThemedText type="title" style={styles.name}>{displayName}</ThemedText>
+                <ThemedText type="default" style={styles.email}>{email}</ThemedText>
+                <View style={[styles.roleBadge, { backgroundColor: `${primaryColor}15` }]}>
+                  <ThemedText type="caption" style={{ color: primaryColor, fontWeight: '600' }}>{role}</ThemedText>
+                </View>
               </View>
-            </View>
-            <ThemedText type="title" style={styles.name}>John Doe</ThemedText>
-            <ThemedText type="default" style={styles.email}>john.doe@university.edu</ThemedText>
-            <View style={[styles.roleBadge, { backgroundColor: `${primaryColor}15` }]}>
-              <ThemedText type="caption" style={{ color: primaryColor, fontWeight: '600' }}>Student</ThemedText>
-            </View>
-          </View>
 
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Account Settings</ThemedText>
-            <View style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}>
-              {renderSettingItem({ icon: 'person.fill', title: 'Personal Information', color: Colors.light.primary })}
-              {renderSettingItem({ icon: 'lock.fill', title: 'Security & Password', color: Colors.light.accent })}
-              {renderSettingItem({ icon: 'bell.fill', title: 'Notifications', type: 'switch', value: notificationsEnabled, onValueChange: setNotificationsEnabled, color: Colors.light.warning })}
-              {renderSettingItem({ icon: 'moon.fill', title: 'Dark Mode', type: 'switch', value: isDarkMode, onValueChange: setIsDarkMode, color: Colors.light.info })}
+              <View style={styles.section}>
+                <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Account Settings</ThemedText>
+                <View style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}>
+                  {renderSettingItem({ icon: 'person.fill', title: 'Personal Information', color: Colors.light.primary })}
+                  {renderSettingItem({ icon: 'lock.fill', title: 'Security & Password', color: Colors.light.accent })}
+                  {renderSettingItem({ icon: 'bell.fill', title: 'Notifications', type: 'switch', value: notificationsEnabled, onValueChange: setNotificationsEnabled, color: Colors.light.warning })}
+                  {renderSettingItem({ icon: 'moon.fill', title: 'Dark Mode', type: 'switch', value: isDarkMode, onValueChange: setIsDarkMode, color: Colors.light.info })}
+                </View>
+              </View>
+            </>
+          ) : (
+            // Not logged in: Show login prompt
+            <View style={styles.header}>
+              <View style={[styles.avatarContainer, { backgroundColor: Colors.light.icon }, Shadows.light.md]}>
+                <IconSymbol name="person.fill" size={48} color="#FFFFFF" />
+              </View>
+              <ThemedText type="title" style={styles.name}>Welcome to FASM</ThemedText>
+              <ThemedText type="default" style={styles.email}>Please login to access your profile</ThemedText>
             </View>
-          </View>
+          )}
 
           <View style={styles.section}>
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Support</ThemedText>
@@ -86,13 +129,25 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.logoutButton, { borderColor: Colors.light.error }]}
-            onPress={handleLogout}
-          >
-            <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color={Colors.light.error} style={styles.logoutIcon} />
-            <ThemedText type="defaultSemiBold" style={{ color: Colors.light.error }}>Log Out</ThemedText>
-          </TouchableOpacity>
+          {isLoggedIn ? (
+            // Logged in: Show logout button
+            <TouchableOpacity
+              style={[styles.logoutButton, { borderColor: Colors.light.error }]}
+              onPress={handleLogout}
+            >
+              <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color={Colors.light.error} style={styles.logoutIcon} />
+              <ThemedText type="defaultSemiBold" style={{ color: Colors.light.error }}>Log Out</ThemedText>
+            </TouchableOpacity>
+          ) : (
+            // Not logged in: Show login button
+            <TouchableOpacity
+              style={[styles.loginButton, { backgroundColor: primaryColor }]}
+              onPress={handleLogin}
+            >
+              <IconSymbol name="person.fill" size={20} color="#FFFFFF" style={styles.logoutIcon} />
+              <ThemedText type="defaultSemiBold" style={styles.loginButtonText}>Login</ThemedText>
+            </TouchableOpacity>
+          )}
 
           <ThemedText type="caption" style={styles.version}>Version 1.0.0</ThemedText>
 
@@ -196,6 +251,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     backgroundColor: 'transparent',
+  },
+  loginButton: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
   logoutIcon: {
     marginRight: Spacing.sm,

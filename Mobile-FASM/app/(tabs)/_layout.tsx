@@ -36,14 +36,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: isInstructor ? 'Dashboard' : 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="classes"
         options={{
-          title: 'Classes',
+          title: isInstructor ? 'My Class' : 'Classes',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="book.fill" color={color} />,
           // Show for logged in users (both Student and Instructor)
           href: isLoggedIn ? '/(tabs)/classes' : null,
@@ -63,8 +63,8 @@ export default function TabLayout() {
         options={{
           title: 'Explore',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="safari.fill" color={color} />,
-          // Show for logged in users (both Student and Instructor)
-          href: isLoggedIn ? '/(tabs)/explore' : null,
+          // Only show for Student, hide for Instructor
+          href: isLoggedIn && isStudent ? '/(tabs)/explore' : null,
         }}
       />
       <Tabs.Screen

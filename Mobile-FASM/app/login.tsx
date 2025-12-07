@@ -18,7 +18,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,31 +25,27 @@ export default function LoginScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const colorScheme = useColorScheme();
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const placeholderColor = useThemeColor({}, 'icon');
   const primaryColor = useThemeColor({}, 'primary');
   const borderColor = useThemeColor({}, 'border');
   const inputBg = useThemeColor({ light: '#F3F4F6', dark: '#1F2937' }, 'background');
 
-  /**
-   * Handle user login
-   * Validates input and calls authentication service
-   */
+  
   const handleLogin = async () => {
     console.log('handleLogin called');
     
     // Validate input
     if (!studentId.trim()) {
-      Alert.alert('Validation Error', 'Please enter your student ID');
+      Alert.alert('Validation Error', 'Please enter your user ID');
       return;
     }
+    
 
     if (!password.trim()) {
       Alert.alert('Validation Error', 'Please enter your password');
@@ -154,7 +149,7 @@ export default function LoginScreen() {
 
               <View style={styles.inputGroup}>
                 <ThemedText type="defaultSemiBold" style={styles.label}>
-                  Student ID
+                  Username
                 </ThemedText>
                 <View style={[styles.inputContainer, { backgroundColor: inputBg, borderColor }]}>
                   <IconSymbol name="person.fill" size={20} color={placeholderColor} style={styles.inputIcon} />
@@ -218,33 +213,6 @@ export default function LoginScreen() {
                     Sign In
                   </ThemedText>
                 )}
-              </TouchableOpacity>
-
-              <View style={styles.dividerContainer}>
-                <View style={[styles.dividerLine, { backgroundColor: borderColor }]} />
-                <ThemedText type="small" style={styles.dividerText}>
-                  OR
-                </ThemedText>
-                <View style={[styles.dividerLine, { backgroundColor: borderColor }]} />
-              </View>
-
-              <TouchableOpacity
-                style={[styles.socialButton, { borderColor }]}
-                activeOpacity={0.7}
-              >
-                <View style={styles.socialIconPlaceholder}>
-                  <ThemedText type="defaultSemiBold" style={{ color: '#EA4335' }}>G</ThemedText>
-                </View>
-                <ThemedText type="defaultSemiBold">Continue with Google</ThemedText>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.footer}>
-              <ThemedText type="default">Don't have an account? </ThemedText>
-              <TouchableOpacity onPress={() => router.push('/signup')}>
-                <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>
-                  Sign Up
-                </ThemedText>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -351,36 +319,5 @@ const styles = StyleSheet.create({
   },
   loginButtonDisabled: {
     opacity: 0.6,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: Spacing.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    marginHorizontal: Spacing.md,
-    opacity: 0.5,
-  },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 56,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    marginBottom: Spacing.lg,
-  },
-  socialIconPlaceholder: {
-    marginRight: Spacing.sm,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 'auto',
-    paddingTop: Spacing.xl,
   },
 });

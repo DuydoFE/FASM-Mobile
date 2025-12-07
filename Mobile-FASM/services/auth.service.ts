@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { ApiResponse, AuthUser, LoginRequest, LoginResponse } from '../types/api.types';
 import apiClient from './api';
 import { API_CONFIG } from './config/api.config';
@@ -22,12 +22,8 @@ class AuthService {
         password,
       };
 
-      const endpoint = API_CONFIG.endpoints.login;
-      
-  
-
-      const response = await axios.post<LoginResponse>(
-        "https://localhost:7104/api/account/login",
+      const response = await apiClient.post<LoginResponse>(
+        API_CONFIG.endpoints.login,
         payload
       );
 

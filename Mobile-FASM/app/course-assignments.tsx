@@ -110,6 +110,15 @@ export default function CourseAssignmentsScreen() {
     }
   };
 
+  const handleAssignmentPress = (assignment: Assignment) => {
+    router.push({
+      pathname: '/assignment-details',
+      params: {
+        assignmentId: assignment.assignmentId.toString(),
+      },
+    });
+  };
+
   const renderAssignmentCard = (assignment: Assignment) => {
     const { status, color } = getAssignmentStatus(assignment);
 
@@ -118,9 +127,7 @@ export default function CourseAssignmentsScreen() {
         key={assignment.assignmentId}
         style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
         activeOpacity={0.8}
-        onPress={() => {
-          // TODO: Navigate to assignment details
-        }}
+        onPress={() => handleAssignmentPress(assignment)}
       >
         {/* Header */}
         <View style={styles.cardHeader}>

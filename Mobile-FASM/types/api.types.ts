@@ -133,3 +133,45 @@ export interface Assignment {
 }
 
 export type AssignmentListResponse = ApiResponse<Assignment[]>;
+
+/**
+ * Assignment Detail Types
+ * For single assignment details with rubric
+ */
+export interface AssignmentDetail {
+  assignmentId: number;
+  title: string;
+  description: string;
+  guidelines: string;
+  courseName: string;
+  courseCode: string;
+  sectionCode: string;
+  gradingScale: string;
+  fileUrl: string | null;
+  fileName: string | null;
+  startDate: string;
+  deadline: string;
+  reviewDeadline: string;
+  finalDeadline: string;
+  numPeerReviewsRequired: number;
+  passThreshold: number;
+  instructorWeight: number;
+  peerWeight: number;
+  isBlindReview: boolean;
+  includeAIScore: boolean;
+}
+
+export type AssignmentDetailResponse = ApiResponse<AssignmentDetail>;
+
+/**
+ * Peer Review Tracking Types
+ * For tracking student's peer review progress on an assignment
+ */
+export interface PeerReviewTracking {
+  pendingReviewsCount: number;
+  completedReviewsCount: number;
+  numPeerReviewsRequired: number;
+  status: 'Pending' | 'InReview' | 'Completed' | 'NotStarted';
+}
+
+export type PeerReviewTrackingResponse = ApiResponse<PeerReviewTracking>;

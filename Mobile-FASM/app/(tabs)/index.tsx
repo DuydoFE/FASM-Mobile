@@ -47,13 +47,6 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/classes')}
             />
             <FeatureCard
-              title="Assignments"
-              subtitle="12 Pending"
-              color={Colors.light.accent}
-              icon="doc.text.fill"
-              onPress={() => router.push('/(tabs)/assignments')}
-            />
-            <FeatureCard
               title="Notifications"
               subtitle="3 New"
               color={Colors.light.warning}

@@ -33,6 +33,14 @@ export default function RootLayout() {
               title: 'Assignments'
             }}
           />
+          
+          <Stack.Screen
+            name="assignment-details"
+            options={{
+              headerShown: false,
+              title: 'Assignment Details'
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

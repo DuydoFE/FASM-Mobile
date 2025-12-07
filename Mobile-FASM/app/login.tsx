@@ -4,8 +4,10 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { authService } from '@/services/auth.service';
+import { instructorService } from '@/services/instructor.service';
 import { useAppDispatch } from '@/store';
 import { setCredentials } from '@/store/slices/authSlice';
+import { setInstructorClasses, setInstructorError, setInstructorLoading } from '@/store/slices/instructorSlice';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -69,6 +71,11 @@ export default function LoginScreen() {
         // Login successful - Save user data to Redux store
         dispatch(setCredentials(response.data));
         
+        // Fetch instructor classes if user has Instructor role
+        if (response.data.roles.includes('Instructor')) {
+          await fetchInstructorClasses(response.data.userId);
+        }
+        
         Alert.alert(
           'Login Successful',
           `Welcome back, ${response.data.firstName} ${response.data.lastName}!`,
@@ -98,6 +105,32 @@ export default function LoginScreen() {
     } finally {
       setIsLoading(false);
       console.log('Login attempt finished');
+    }
+  };
+
+  /**
+   * Fetch instructor classes after login
+   * @param userId - The logged in user's ID
+   */
+  const fetchInstructorClasses = async (userId: number) => {
+    try {
+      dispatch(setInstructorLoading(true));
+      
+      const classesResponse = await instructorService.getInstructorClasses(userId);
+      
+      if (classesResponse.statusCode === 200 && classesResponse.data) {
+        dispatch(setInstructorClasses(classesResponse.data));
+        console.log('Instructor classes loaded:', classesResponse.data.length);
+      } else {
+        const errorMessage = classesResponse.errors.length > 0
+          ? classesResponse.errors[0].message
+          : classesResponse.message || 'Failed to load classes';
+        dispatch(setInstructorError(errorMessage));
+        console.warn('Failed to load instructor classes:', errorMessage);
+      }
+    } catch (error) {
+      console.error('Error fetching instructor classes:', error);
+      dispatch(setInstructorError('Failed to fetch instructor classes'));
     }
   };
 

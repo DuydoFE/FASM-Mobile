@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -7,104 +7,187 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppSelector } from '@/store';
+import { selectCurrentUser, selectIsAuthenticated } from '@/store/slices/authSlice';
+import { selectInstructorClasses, selectInstructorError, selectInstructorLoading } from '@/store/slices/instructorSlice';
+import { InstructorClass } from '@/types/api.types';
 
-const CLASSES = [
-  {
-    id: '1',
-    name: 'Object Oriented Programming',
-    code: 'CS101',
-    instructor: 'Dr. Alan Turing',
-    schedule: 'Mon, Wed 10:00 AM',
-    room: 'B204',
-    color: Colors.light.primary,
-    progress: 0.75,
-  },
-  {
-    id: '2',
-    name: 'Database Systems',
-    code: 'CS202',
-    instructor: 'Prof. Ada Lovelace',
-    schedule: 'Tue, Thu 02:00 PM',
-    room: 'A101',
-    color: Colors.light.accent,
-    progress: 0.45,
-  },
-  {
-    id: '3',
-    name: 'Mobile Development',
-    code: 'SE301',
-    instructor: 'Mr. Steve Jobs',
-    schedule: 'Fri 09:00 AM',
-    room: 'Lab 3',
-    color: Colors.light.success,
-    progress: 0.90,
-  },
-  {
-    id: '4',
-    name: 'Algorithms & Data Structures',
-    code: 'CS201',
-    instructor: 'Dr. Grace Hopper',
-    schedule: 'Mon 01:00 PM',
-    room: 'C305',
-    color: Colors.light.warning,
-    progress: 0.60,
-  },
+// Color palette for class cards
+const CLASS_COLORS = [
+  Colors.light.primary,
+  Colors.light.accent,
+  Colors.light.success,
+  Colors.light.warning,
+  '#9333EA', // purple
+  '#EC4899', // pink
 ];
 
+/**
+ * Get a consistent color for a class based on its ID
+ */
+const getClassColor = (classId: number): string => {
+  return CLASS_COLORS[classId % CLASS_COLORS.length];
+};
+
+/**
+ * Format date string to readable format
+ */
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+/**
+ * Get status badge color
+ */
+const getStatusColor = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return Colors.light.success;
+    case 'upcoming':
+      return Colors.light.warning;
+    case 'completed':
+      return Colors.light.icon;
+    default:
+      return Colors.light.primary;
+  }
+};
+
 export default function ClassesScreen() {
-  const backgroundColor = useThemeColor({}, 'background');
   const cardBg = useThemeColor({}, 'backgroundSecondary');
-  const textColor = useThemeColor({}, 'text');
   const primaryColor = useThemeColor({}, 'primary');
+
+  // Redux selectors
+  const instructorClasses = useAppSelector(selectInstructorClasses);
+  const isLoading = useAppSelector(selectInstructorLoading);
+  const error = useAppSelector(selectInstructorError);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const currentUser = useAppSelector(selectCurrentUser);
+
+  // Check if user is an instructor
+  const isInstructor = currentUser?.roles?.includes('Instructor') ?? false;
+
+  /**
+   * Render a single class card
+   */
+  const renderClassCard = (item: InstructorClass) => {
+    const cardColor = getClassColor(item.id);
+    
+    return (
+      <TouchableOpacity
+        key={item.id}
+        style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
+        activeOpacity={0.8}
+      >
+        <View style={[styles.cardBanner, { backgroundColor: cardColor }]}>
+          <View style={styles.bannerHeader}>
+            <View style={styles.codeBadge}>
+              <ThemedText type="caption" style={styles.codeText}>{item.courseCode}</ThemedText>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.courseInstanceStatus) }]}>
+              <ThemedText type="caption" style={styles.statusText}>{item.courseInstanceStatus}</ThemedText>
+            </View>
+          </View>
+          <IconSymbol name="book.fill" size={24} color="rgba(255,255,255,0.3)" style={styles.bannerIcon} />
+        </View>
+        
+        <View style={styles.cardContent}>
+          <ThemedText type="title" style={styles.className}>{item.courseName}</ThemedText>
+          <ThemedText type="default" style={styles.courseInstance}>{item.courseInstanceName}</ThemedText>
+          
+          <View style={styles.infoRow}>
+            <View style={styles.infoItem}>
+              <IconSymbol name="calendar" size={14} color={Colors.light.icon} style={styles.infoIcon} />
+              <ThemedText type="caption" style={styles.infoText}>{item.semesterName}</ThemedText>
+            </View>
+            <View style={styles.infoItem}>
+              <IconSymbol name="person.2.fill" size={14} color={Colors.light.icon} style={styles.infoIcon} />
+              <ThemedText type="caption" style={styles.infoText}>{item.studentCount} students</ThemedText>
+            </View>
+          </View>
+
+          <View style={styles.dateRow}>
+            <View style={styles.dateItem}>
+              <ThemedText type="caption" style={styles.dateLabel}>Start:</ThemedText>
+              <ThemedText type="caption" style={styles.dateValue}>{formatDate(item.startDate)}</ThemedText>
+            </View>
+            <View style={styles.dateItem}>
+              <ThemedText type="caption" style={styles.dateLabel}>End:</ThemedText>
+              <ThemedText type="caption" style={styles.dateValue}>{formatDate(item.endDate)}</ThemedText>
+            </View>
+          </View>
+
+          {item.isMainInstructor && (
+            <View style={styles.mainInstructorBadge}>
+              <IconSymbol name="star.fill" size={12} color={Colors.light.warning} style={styles.starIcon} />
+              <ThemedText type="caption" style={styles.mainInstructorText}>Main Instructor</ThemedText>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  /**
+   * Render empty state when no classes
+   */
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <IconSymbol name="book.closed" size={64} color={Colors.light.icon} />
+      <ThemedText type="title" style={styles.emptyTitle}>No Classes Yet</ThemedText>
+      <ThemedText style={styles.emptySubtitle}>
+        {isAuthenticated
+          ? isInstructor
+            ? "You don't have any assigned classes yet."
+            : "Please log in with an instructor account to view your classes."
+          : "Please log in to view your classes."}
+      </ThemedText>
+    </View>
+  );
+
+  /**
+   * Render error state
+   */
+  const renderErrorState = () => (
+    <View style={styles.emptyContainer}>
+      <IconSymbol name="exclamationmark.triangle" size={64} color={Colors.light.warning} />
+      <ThemedText type="title" style={styles.emptyTitle}>Error Loading Classes</ThemedText>
+      <ThemedText style={styles.emptySubtitle}>{error}</ThemedText>
+    </View>
+  );
+
+  /**
+   * Render loading state
+   */
+  const renderLoadingState = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={primaryColor} />
+      <ThemedText style={styles.loadingText}>Loading your classes...</ThemedText>
+    </View>
+  );
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <ThemedText type="largeTitle">My Classes</ThemedText>
-          <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]}>
-            <IconSymbol name="plus" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
+          {isInstructor && (
+            <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]}>
+              <IconSymbol name="plus" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {CLASSES.map((item) => (
-            <TouchableOpacity 
-              key={item.id}
-              style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.cardBanner, { backgroundColor: item.color }]}>
-                <View style={styles.codeBadge}>
-                  <ThemedText type="caption" style={styles.codeText}>{item.code}</ThemedText>
-                </View>
-                <IconSymbol name="book.fill" size={24} color="rgba(255,255,255,0.3)" style={styles.bannerIcon} />
-              </View>
-              
-              <View style={styles.cardContent}>
-                <ThemedText type="title" style={styles.className}>{item.name}</ThemedText>
-                <ThemedText type="default" style={styles.instructor}>{item.instructor}</ThemedText>
-                
-                <View style={styles.infoRow}>
-                  <View style={styles.infoItem}>
-                    <IconSymbol name="clock" size={14} color={Colors.light.icon} style={styles.infoIcon} />
-                    <ThemedText type="caption" style={styles.infoText}>{item.schedule}</ThemedText>
-                  </View>
-                  <View style={styles.infoItem}>
-                    <IconSymbol name="mappin.and.ellipse" size={14} color={Colors.light.icon} style={styles.infoIcon} />
-                    <ThemedText type="caption" style={styles.infoText}>{item.room}</ThemedText>
-                  </View>
-                </View>
-
-                <View style={styles.progressContainer}>
-                  <View style={styles.progressBarBg}>
-                    <View style={[styles.progressBarFill, { width: `${item.progress * 100}%`, backgroundColor: item.color }]} />
-                  </View>
-                  <ThemedText type="caption" style={styles.progressText}>{Math.round(item.progress * 100)}% Complete</ThemedText>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {isLoading ? (
+            renderLoadingState()
+          ) : error ? (
+            renderErrorState()
+          ) : instructorClasses.length > 0 ? (
+            instructorClasses.map(renderClassCard)
+          ) : (
+            renderEmptyState()
+          )}
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -136,6 +219,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
+    flexGrow: 1,
   },
   card: {
     borderRadius: BorderRadius.lg,
@@ -149,6 +233,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
+  bannerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    width: '100%',
+  },
   codeBadge: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: Spacing.sm,
@@ -158,6 +248,16 @@ const styles = StyleSheet.create({
   codeText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  statusText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 11,
   },
   bannerIcon: {
     position: 'absolute',
@@ -172,13 +272,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 4,
   },
-  instructor: {
+  courseInstance: {
     opacity: 0.6,
     marginBottom: Spacing.md,
   },
   infoRow: {
     flexDirection: 'row',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
     gap: Spacing.lg,
   },
   infoItem: {
@@ -191,23 +291,65 @@ const styles = StyleSheet.create({
   infoText: {
     opacity: 0.6,
   },
-  progressContainer: {
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    paddingTop: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  dateItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateLabel: {
+    opacity: 0.5,
+    marginRight: 4,
+  },
+  dateValue: {
+    fontWeight: '500',
+  },
+  mainInstructorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    alignSelf: 'flex-start',
     marginTop: Spacing.xs,
   },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: BorderRadius.full,
-    marginBottom: Spacing.xs,
-    overflow: 'hidden',
+  starIcon: {
+    marginRight: 4,
   },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: BorderRadius.full,
+  mainInstructorText: {
+    color: Colors.light.warning,
+    fontWeight: '600',
   },
-  progressText: {
-    alignSelf: 'flex-end',
-    opacity: 0.5,
-    fontSize: 11,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl * 2,
+  },
+  emptyTitle: {
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  emptySubtitle: {
+    opacity: 0.6,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl * 2,
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    opacity: 0.6,
   },
 });

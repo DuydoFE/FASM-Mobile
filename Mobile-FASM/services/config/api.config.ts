@@ -12,6 +12,8 @@ export const API_CONFIG = {
     login: '/api/account/login',
     refreshToken: '/api/account/refresh-token',
     getAuth: '/api/account/me',
+    // Instructor endpoints
+    getInstructorClasses: '/api/CourseInstructor/instructor',
   },
 } as const;
 

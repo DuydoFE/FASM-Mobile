@@ -57,3 +57,33 @@ export interface AuthUser {
   roles: string[];
   campusId: number;
 }
+
+/**
+ * Instructor Class Types
+ * Types for instructor's assigned classes/course instances
+ */
+export interface InstructorClass {
+  id: number;
+  courseInstanceId: number;
+  courseInstanceName: string;
+  courseCode: string;
+  userId: number;
+  instructorName: string;
+  instructorEmail: string;
+  isMainInstructor: boolean;
+  createdAt: string;
+  studentCount: number;
+  courseInstanceStatus: string;
+  courseName: string;
+  semesterName: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface InstructorClassesResponse {
+  message: string;
+  statusCode: number;
+  data: InstructorClass[] | null;
+  errors: ApiError[];
+  warnings: ApiWarning[];
+}

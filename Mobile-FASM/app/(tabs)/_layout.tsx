@@ -74,9 +74,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="assignments"
+        name="rubric"
         options={{
-          title: 'Assignments',
+          title: 'Rubrics',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.text.fill" color={color} />,
           // Only show for Instructor, hide for Student and not logged in
           href: isLoggedIn && isInstructor ? undefined : null,

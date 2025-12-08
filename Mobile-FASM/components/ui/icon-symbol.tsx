@@ -51,6 +51,9 @@ const MAPPING: Record<string, MaterialIconName> = {
   'ellipsis': 'more-horiz',
   'ellipsis.vertical': 'more-vert',
   'trash.fill': 'delete',
+  'square.grid.2x2.fill': 'dashboard',
+  'list.bullet.rectangle.fill': 'list-alt',
+  'person.2.fill': 'people',
 };
 
 /**

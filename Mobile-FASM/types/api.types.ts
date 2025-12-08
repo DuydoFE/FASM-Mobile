@@ -281,3 +281,55 @@ export interface SearchData {
 }
 
 export type SearchResponse = ApiResponse<SearchData>;
+
+/**
+ * Rubric Types
+ * For instructor rubric management
+ */
+export interface RubricCriteria {
+  criteriaId: number;
+  rubricId: number;
+  rubricTitle: string;
+  criteriaTemplateId: number;
+  criteriaTemplateTitle: string | null;
+  title: string;
+  assignmentTitle: string | null;
+  description: string;
+  weight: number;
+  maxScore: number;
+  scoringType: string;
+  scoreLabel: string;
+  isModified: boolean;
+  criteriaFeedbackCount: number;
+  courseName: string | null;
+  className: string | null;
+  assignmentStatus: string | null;
+}
+
+export interface RubricAssignmentUsing {
+  assignmentId: number;
+  title: string;
+  courseName: string;
+  className: string;
+  campusName: string;
+  deadline: string;
+}
+
+export interface Rubric {
+  rubricId: number;
+  templateId: number;
+  templateTitle: string;
+  assignmentId: number;
+  assignmentTitle: string;
+  title: string;
+  isModified: boolean;
+  criteriaCount: number;
+  gradingScale: string | null;
+  assignmentStatus: string;
+  courseName: string;
+  className: string;
+  criteria: RubricCriteria[];
+  assignmentsUsingTemplate: RubricAssignmentUsing[];
+}
+
+export type RubricListResponse = ApiResponse<Rubric[]>;

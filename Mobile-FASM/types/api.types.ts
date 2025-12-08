@@ -556,3 +556,25 @@ export interface AICriteriaFeedbackData {
 }
 
 export type AICriteriaFeedbackResponse = ApiResponse<AICriteriaFeedbackData>;
+
+/**
+ * Notification Types
+ * For user notifications
+ */
+export interface Notification {
+  notificationId: number;
+  userId: number;
+  senderUserId: number | null;
+  assignmentId: number | null;
+  submissionId: number | null;
+  reviewAssignmentId: number | null;
+  courseId: number | null;
+  courseInstanceId: number | null;
+  title: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export type NotificationListResponse = ApiResponse<Notification[]>;

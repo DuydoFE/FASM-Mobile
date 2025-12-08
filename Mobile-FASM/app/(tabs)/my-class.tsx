@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { CourseInstructor, getInstructorCourses } from '@/services/course-instructor.service';
 import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/store/slices/authSlice';
 
@@ -25,18 +26,6 @@ const getColorForIndex = (index: number): string => {
   return CLASS_COLORS[index % CLASS_COLORS.length];
 };
 
-// Mock data for instructor courses - replace with actual API call
-interface InstructorCourse {
-  courseInstanceId: number;
-  courseCode: string;
-  courseName: string;
-  courseInstanceName: string;
-  studentCount: number;
-  status: string;
-  startDate: string;
-  endDate: string;
-}
-
 export default function MyClassScreen() {
   const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
@@ -46,7 +35,7 @@ export default function MyClassScreen() {
 
   const user = useAppSelector(selectCurrentUser);
   
-  const [courses, setCourses] = useState<InstructorCourse[]>([]);
+  const [courses, setCourses] = useState<CourseInstructor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,44 +55,9 @@ export default function MyClassScreen() {
       }
       setError(null);
       
-      // TODO: Replace with actual API call for instructor courses
-      // const data = await getInstructorCourses(user.userId);
-      
-      // Mock data for now
-      const mockData: InstructorCourse[] = [
-        {
-          courseInstanceId: 1,
-          courseCode: 'CS101',
-          courseName: 'Introduction to Programming',
-          courseInstanceName: 'Fall 2024',
-          studentCount: 35,
-          status: 'Active',
-          startDate: '2024-09-01',
-          endDate: '2024-12-15',
-        },
-        {
-          courseInstanceId: 2,
-          courseCode: 'CS201',
-          courseName: 'Data Structures',
-          courseInstanceName: 'Fall 2024',
-          studentCount: 28,
-          status: 'Active',
-          startDate: '2024-09-01',
-          endDate: '2024-12-15',
-        },
-        {
-          courseInstanceId: 3,
-          courseCode: 'CS301',
-          courseName: 'Algorithms',
-          courseInstanceName: 'Fall 2024',
-          studentCount: 22,
-          status: 'Active',
-          startDate: '2024-09-01',
-          endDate: '2024-12-15',
-        },
-      ];
-      
-      setCourses(mockData);
+      // Call the instructor courses API with the logged-in user's ID
+      const data = await getInstructorCourses(user.userId);
+      setCourses(data);
     } catch (err) {
       setError('Failed to load classes. Please try again.');
       console.error('Error fetching courses:', err);
@@ -132,18 +86,21 @@ export default function MyClassScreen() {
 
   const getStatusColor = (status: string): string => {
     switch (status.toLowerCase()) {
+      case 'ongoing':
       case 'active':
         return Colors.light.success;
       case 'upcoming':
+      case 'pending':
         return Colors.light.warning;
       case 'completed':
+      case 'ended':
         return Colors.light.primary;
       default:
         return Colors.light.icon;
     }
   };
 
-  const handleCoursePress = (course: InstructorCourse) => {
+  const handleCoursePress = (course: CourseInstructor) => {
     router.push({
       pathname: '/course-assignments',
       params: {
@@ -152,7 +109,7 @@ export default function MyClassScreen() {
     });
   };
 
-  const renderCourseCard = (course: InstructorCourse, index: number) => {
+  const renderCourseCard = (course: CourseInstructor, index: number) => {
     const cardColor = getColorForIndex(index);
     
     return (
@@ -167,20 +124,22 @@ export default function MyClassScreen() {
             <ThemedText type="caption" style={styles.codeText}>{course.courseCode}</ThemedText>
           </View>
           <View style={styles.statusBadge}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor(course.status) }]} />
-            <ThemedText type="caption" style={styles.statusText}>{course.status}</ThemedText>
+            <View style={[styles.statusDot, { backgroundColor: getStatusColor(course.courseInstanceStatus) }]} />
+            <ThemedText type="caption" style={styles.statusText}>{course.courseInstanceStatus}</ThemedText>
           </View>
-          <IconSymbol 
-            name="book.fill" 
-            size={24} 
-            color="rgba(255,255,255,0.3)" 
-            style={styles.bannerIcon} 
+          <IconSymbol
+            name="book.fill"
+            size={24}
+            color="rgba(255,255,255,0.3)"
+            style={styles.bannerIcon}
           />
         </View>
         
         <View style={styles.cardContent}>
           <ThemedText type="title" style={styles.className}>{course.courseName}</ThemedText>
-          <ThemedText type="default" style={styles.instanceName}>{course.courseInstanceName}</ThemedText>
+          <ThemedText type="default" style={styles.instanceName}>
+            {course.courseInstanceName} • {course.semesterName}
+          </ThemedText>
           
           <View style={styles.infoRow}>
             <IconSymbol name="person.2.fill" size={14} color={Colors.light.icon} style={styles.infoIcon} />
@@ -195,6 +154,15 @@ export default function MyClassScreen() {
               {formatDate(course.startDate)} - {formatDate(course.endDate)}
             </ThemedText>
           </View>
+
+          {course.isMainInstructor && (
+            <View style={styles.infoRow}>
+              <IconSymbol name="star.fill" size={14} color={Colors.light.warning} style={styles.infoIcon} />
+              <ThemedText type="caption" style={[styles.infoText, { color: Colors.light.warning }]}>
+                Main Instructor
+              </ThemedText>
+            </View>
+          )}
 
           <View style={styles.viewAction}>
             <IconSymbol name="doc.text.fill" size={14} color={Colors.light.primary} style={styles.infoIcon} />

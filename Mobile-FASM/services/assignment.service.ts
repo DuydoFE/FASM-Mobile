@@ -8,7 +8,7 @@ import apiClient from './api';
 
 const ENDPOINTS = {
   getAssignmentsByCourseInstance: (courseInstanceId: number) =>
-    `/api/Assignment/course-instance/${courseInstanceId}/basic`,
+    `/api/Assignment/course-instance/${courseInstanceId}`,
   getAssignmentDetails: (assignmentId: number) =>
     `/api/Assignment/${assignmentId}/details`,
   getPeerReviewTracking: (assignmentId: number) =>

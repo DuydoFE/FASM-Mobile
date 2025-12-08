@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -18,10 +18,26 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { getAssignmentsByCourseInstance } from '@/services/assignment.service';
 import { Assignment } from '@/types/api.types';
 
-export default function CourseAssignmentsScreen() {
+// Filter status options
+const STATUS_FILTERS = [
+  'All',
+  'Draft',
+  'Upcoming',
+  'Active',
+  'InReview',
+  'Closed',
+  'GradesPublished',
+  'Cancelled',
+] as const;
+
+type StatusFilter = typeof STATUS_FILTERS[number];
+
+export default function InstructorCourseAssignmentsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     courseInstanceId: string;
+    courseName?: string;
+    courseCode?: string;
   }>();
 
   const backgroundColor = useThemeColor({}, 'background');
@@ -33,12 +49,24 @@ export default function CourseAssignmentsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<StatusFilter>('All');
 
   const courseInstanceId = params.courseInstanceId ? parseInt(params.courseInstanceId, 10) : null;
   
-  // Get course info from first assignment (API returns courseName and courseCode)
-  const courseName = assignments.length > 0 ? assignments[0].courseName : 'Course';
-  const courseCode = assignments.length > 0 ? assignments[0].courseCode : '';
+  // Get course info from params or first assignment
+  const courseName = params.courseName || (assignments.length > 0 ? assignments[0].courseName : 'Course');
+  const courseCode = params.courseCode || (assignments.length > 0 ? assignments[0].courseCode : '');
+
+  // Filter assignments based on selected status
+  const filteredAssignments = useMemo(() => {
+    if (selectedFilter === 'All') {
+      return assignments;
+    }
+    return assignments.filter(
+      (a) => a.status.toLowerCase() === selectedFilter.toLowerCase() ||
+             a.uiStatus?.toLowerCase() === selectedFilter.toLowerCase()
+    );
+  }, [assignments, selectedFilter]);
 
   const fetchAssignments = async (showRefresh = false) => {
     if (!courseInstanceId) {
@@ -77,11 +105,9 @@ export default function CourseAssignmentsScreen() {
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      year: 'numeric',
     });
   };
 
@@ -105,14 +131,138 @@ export default function CourseAssignmentsScreen() {
       case 'completed':
         return Colors.light.icon;
       case 'upcoming':
-      case 'draft':
         return Colors.light.warning;
+      case 'draft':
+        return '#9CA3AF'; // gray
+      case 'gradespublished':
+        return '#10B981'; // emerald
+      case 'cancelled':
+        return Colors.light.error;
       default:
         return Colors.light.icon;
     }
   };
 
+  const getFilterColor = (filter: StatusFilter): string => {
+    switch (filter.toLowerCase()) {
+      case 'all':
+        return Colors.light.primary;
+      case 'active':
+        return Colors.light.success;
+      case 'inreview':
+        return Colors.light.primary;
+      case 'closed':
+        return Colors.light.icon;
+      case 'upcoming':
+        return Colors.light.warning;
+      case 'draft':
+        return '#9CA3AF';
+      case 'gradespublished':
+        return '#10B981';
+      case 'cancelled':
+        return Colors.light.error;
+      default:
+        return Colors.light.icon;
+    }
+  };
+
+  const getFilterIcon = (filter: StatusFilter): string => {
+    switch (filter.toLowerCase()) {
+      case 'all':
+        return 'square.grid.2x2.fill';
+      case 'active':
+        return 'play.circle.fill';
+      case 'inreview':
+        return 'eye.fill';
+      case 'closed':
+        return 'checkmark.circle.fill';
+      case 'upcoming':
+        return 'clock.fill';
+      case 'draft':
+        return 'doc.fill';
+      case 'gradespublished':
+        return 'chart.bar.fill';
+      case 'cancelled':
+        return 'xmark.circle.fill';
+      default:
+        return 'circle.fill';
+    }
+  };
+
+  const renderFilterTabs = () => (
+    <View style={styles.filterWrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterContainer}
+      >
+        {STATUS_FILTERS.map((filter) => {
+          const isSelected = selectedFilter === filter;
+          const filterColor = getFilterColor(filter);
+          const count = filter === 'All'
+            ? assignments.length
+            : assignments.filter(
+                (a) => a.status.toLowerCase() === filter.toLowerCase() ||
+                       a.uiStatus?.toLowerCase() === filter.toLowerCase()
+              ).length;
+
+          // Skip filters with 0 count (except All)
+          if (count === 0 && filter !== 'All') {
+            return null;
+          }
+
+          return (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterChip,
+                isSelected && [styles.filterChipSelected, { backgroundColor: filterColor }],
+                !isSelected && styles.filterChipUnselected,
+              ]}
+              onPress={() => setSelectedFilter(filter)}
+              activeOpacity={0.7}
+            >
+              <IconSymbol
+                name={getFilterIcon(filter) as any}
+                size={14}
+                color={isSelected ? '#FFFFFF' : filterColor}
+              />
+              <ThemedText
+                type="caption"
+                style={[
+                  styles.filterChipText,
+                  isSelected && styles.filterChipTextSelected,
+                  !isSelected && { color: filterColor },
+                ]}
+              >
+                {filter === 'InReview' ? 'In Review' : filter === 'GradesPublished' ? 'Published' : filter}
+              </ThemedText>
+              <View style={[
+                styles.filterCountBadge,
+                isSelected
+                  ? { backgroundColor: 'rgba(255,255,255,0.3)' }
+                  : { backgroundColor: `${filterColor}20` }
+              ]}>
+                <ThemedText
+                  type="caption"
+                  style={[
+                    styles.filterCountText,
+                    isSelected && { color: '#FFFFFF' },
+                    !isSelected && { color: filterColor },
+                  ]}
+                >
+                  {count}
+                </ThemedText>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+
   const handleAssignmentPress = (assignment: Assignment) => {
+    // Navigate to instructor assignment details (can be implemented later)
     router.push({
       pathname: '/assignment-details',
       params: {
@@ -131,7 +281,7 @@ export default function CourseAssignmentsScreen() {
         activeOpacity={0.8}
         onPress={() => handleAssignmentPress(assignment)}
       >
-        {/* Header */}
+        {/* Header with Status */}
         <View style={styles.cardHeader}>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
             <ThemedText type="caption" style={styles.statusText}>
@@ -185,52 +335,62 @@ export default function CourseAssignmentsScreen() {
           </View>
         </View>
 
-        {/* Days Until Deadline */}
-        {assignment.daysUntilDeadline !== null && (
-          <View style={styles.daysRow}>
-            <IconSymbol
-              name={assignment.daysUntilDeadline < 0 ? "exclamationmark.triangle.fill" : "calendar"}
-              size={12}
-              color={assignment.daysUntilDeadline < 0 ? Colors.light.error : Colors.light.icon}
-            />
-            <ThemedText
-              type="caption"
-              style={[
-                styles.daysText,
-                assignment.daysUntilDeadline < 0 && { color: Colors.light.error }
-              ]}
-            >
-              {assignment.daysUntilDeadline < 0
-                ? `${Math.abs(assignment.daysUntilDeadline)} days overdue`
-                : assignment.daysUntilDeadline === 0
-                  ? 'Due today'
-                  : `${assignment.daysUntilDeadline} days left`
-              }
-            </ThemedText>
-          </View>
-        )}
-
-        {/* Info Row */}
+        {/* Days Info & Settings */}
         <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <IconSymbol name="person.2.fill" size={12} color={Colors.light.icon} />
-            <ThemedText type="caption" style={styles.infoText}>
-              {assignment.numPeerReviewsRequired} peer reviews
-            </ThemedText>
-          </View>
-          {assignment.passThreshold && (
-            <View style={styles.infoItem}>
-              <IconSymbol name="checkmark.seal.fill" size={12} color={Colors.light.icon} />
-              <ThemedText type="caption" style={styles.infoText}>
-                Pass: {assignment.passThreshold}%
+          {assignment.daysUntilDeadline !== null && (
+            <View style={styles.daysInfo}>
+              <IconSymbol 
+                name={assignment.daysUntilDeadline < 0 ? "exclamationmark.triangle.fill" : "calendar"} 
+                size={12} 
+                color={assignment.daysUntilDeadline < 0 ? Colors.light.error : Colors.light.icon} 
+              />
+              <ThemedText 
+                type="caption" 
+                style={[
+                  styles.daysText,
+                  assignment.daysUntilDeadline < 0 && { color: Colors.light.error }
+                ]}
+              >
+                {assignment.daysUntilDeadline < 0 
+                  ? `${Math.abs(assignment.daysUntilDeadline)} days overdue`
+                  : assignment.daysUntilDeadline === 0 
+                    ? 'Due today'
+                    : `${assignment.daysUntilDeadline} days left`
+                }
               </ThemedText>
             </View>
           )}
-          {assignment.isBlindReview && (
-            <View style={styles.infoItem}>
-              <IconSymbol name="eye.slash.fill" size={12} color={Colors.light.icon} />
-              <ThemedText type="caption" style={styles.infoText}>Blind</ThemedText>
-            </View>
+          <View style={styles.settingsRow}>
+            {assignment.isBlindReview && (
+              <View style={styles.settingItem}>
+                <IconSymbol name="eye.slash.fill" size={12} color={Colors.light.icon} />
+              </View>
+            )}
+            {assignment.includeAIScore && (
+              <View style={styles.settingItem}>
+                <IconSymbol name="cpu" size={12} color={Colors.light.icon} />
+              </View>
+            )}
+            {assignment.allowCrossClass && (
+              <View style={styles.settingItem}>
+                <IconSymbol name="arrow.left.arrow.right" size={12} color={Colors.light.icon} />
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Weights Info */}
+        <View style={styles.weightsRow}>
+          <ThemedText type="caption" style={styles.weightText}>
+            Instructor: {assignment.instructorWeight}%
+          </ThemedText>
+          <ThemedText type="caption" style={styles.weightText}>
+            Peer: {assignment.peerWeight}%
+          </ThemedText>
+          {assignment.passThreshold && (
+            <ThemedText type="caption" style={styles.weightText}>
+              Pass: {assignment.passThreshold}
+            </ThemedText>
           )}
         </View>
       </TouchableOpacity>
@@ -269,7 +429,7 @@ export default function CourseAssignmentsScreen() {
         <View style={styles.centerContainer}>
           <IconSymbol name="doc.text" size={48} color={Colors.light.icon} />
           <ThemedText type="default" style={styles.emptyText}>
-            No assignments yet
+            No assignments in this course yet
           </ThemedText>
         </View>
       );
@@ -287,7 +447,17 @@ export default function CourseAssignmentsScreen() {
           />
         }
       >
-        {assignments.map(renderAssignmentCard)}
+        {/* Assignments List */}
+        {filteredAssignments.length > 0 ? (
+          filteredAssignments.map(renderAssignmentCard)
+        ) : (
+          <View style={styles.noResultsContainer}>
+            <IconSymbol name="doc.text" size={32} color={Colors.light.icon} />
+            <ThemedText type="default" style={styles.noResultsText}>
+              No {selectedFilter !== 'All' ? selectedFilter.toLowerCase() : ''} assignments found
+            </ThemedText>
+          </View>
+        )}
       </ScrollView>
     );
   };
@@ -320,11 +490,15 @@ export default function CourseAssignmentsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Filter Tabs */}
+        {!isLoading && !error && assignments.length > 0 && renderFilterTabs()}
+
         {/* Assignment Count */}
         {!isLoading && !error && assignments.length > 0 && (
           <View style={styles.countContainer}>
             <ThemedText type="default" style={styles.countText}>
-              {assignments.length} Assignment{assignments.length !== 1 ? 's' : ''}
+              {filteredAssignments.length} Assignment{filteredAssignments.length !== 1 ? 's' : ''}
+              {selectedFilter !== 'All' && ` (${selectedFilter})`}
             </ThemedText>
           </View>
         )}
@@ -371,6 +545,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Shadows.light.sm,
   },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  filterWrapper: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  filterContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    marginRight: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  filterChipSelected: {
+    ...Shadows.light.sm,
+  },
+  filterChipUnselected: {
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  filterChipTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  filterCountBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    minWidth: 20,
+    alignItems: 'center',
+  },
+  filterCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
   countContainer: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.sm,
@@ -379,9 +600,14 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     fontSize: 14,
   },
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
+  noResultsContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+    gap: Spacing.sm,
+  },
+  noResultsText: {
+    opacity: 0.6,
+    fontSize: 14,
   },
   centerContainer: {
     flex: 1,
@@ -487,28 +713,35 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
-    gap: Spacing.md,
-  },
-  infoItem: {
-    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 4,
-  },
-  infoText: {
-    opacity: 0.6,
-    fontSize: 11,
-  },
-  daysRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
   },
+  daysInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   daysText: {
     opacity: 0.6,
+    fontSize: 11,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  settingItem: {
+    opacity: 0.5,
+  },
+  weightsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+  },
+  weightText: {
+    opacity: 0.5,
     fontSize: 11,
   },
 });

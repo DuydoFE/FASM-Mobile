@@ -102,9 +102,11 @@ export default function MyClassScreen() {
 
   const handleCoursePress = (course: CourseInstructor) => {
     router.push({
-      pathname: '/course-assignments',
+      pathname: '/instructor-course-assignments',
       params: {
         courseInstanceId: course.courseInstanceId.toString(),
+        courseName: course.courseName,
+        courseCode: course.courseCode,
       },
     });
   };

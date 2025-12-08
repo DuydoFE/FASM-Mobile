@@ -101,11 +101,36 @@ export type EnrollWithKeyResponse = ApiResponse<CourseStudent>;
  * Assignment Types
  * For course assignments/tasks
  */
+export interface AssignmentRubricCriteria {
+  criteriaId: number;
+  name: string;
+  description: string;
+  weight: number;
+  maxScore: number;
+}
+
+export interface AssignmentRubric {
+  rubricId: number;
+  templateId: number | null;
+  templateTitle: string | null;
+  assignmentId: number | null;
+  assignmentTitle: string | null;
+  title: string;
+  isModified: boolean;
+  criteriaCount: number;
+  gradingScale: string | null;
+  assignmentStatus: string | null;
+  courseName: string | null;
+  className: string | null;
+  criteria: AssignmentRubricCriteria[];
+  assignmentsUsingTemplate: string[];
+}
+
 export interface Assignment {
   assignmentId: number;
   courseInstanceId: number;
-  rubricTemplateId: number;
-  rubricId: number;
+  rubricTemplateId: number | null;
+  rubricId: number | null;
   title: string;
   description: string;
   guidelines: string;
@@ -117,7 +142,7 @@ export interface Assignment {
   reviewDeadline: string;
   finalDeadline: string;
   numPeerReviewsRequired: number;
-  passThreshold: number;
+  passThreshold: number | null;
   missingReviewPenalty: number;
   allowCrossClass: boolean;
   crossClassTag: string | null;
@@ -130,6 +155,14 @@ export interface Assignment {
   courseCode: string;
   sectionCode: string;
   campusName: string;
+  rubric: AssignmentRubric | null;
+  submissionCount: number;
+  reviewCount: number;
+  status: string;
+  uiStatus: string;
+  isActive: boolean;
+  isOverdue: boolean;
+  daysUntilDeadline: number;
 }
 
 export type AssignmentListResponse = ApiResponse<Assignment[]>;

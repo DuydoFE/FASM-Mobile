@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -100,15 +100,41 @@ export default function MyClassScreen() {
     }
   };
 
+  const [selectedCourse, setSelectedCourse] = useState<CourseInstructor | null>(null);
+  const [showCourseOptions, setShowCourseOptions] = useState(false);
+
   const handleCoursePress = (course: CourseInstructor) => {
-    router.push({
-      pathname: '/instructor-course-assignments',
-      params: {
-        courseInstanceId: course.courseInstanceId.toString(),
-        courseName: course.courseName,
-        courseCode: course.courseCode,
-      },
-    });
+    setSelectedCourse(course);
+    setShowCourseOptions(true);
+  };
+
+  const handleNavigateToAssignments = () => {
+    if (selectedCourse) {
+      setShowCourseOptions(false);
+      router.push({
+        pathname: '/instructor-course-assignments',
+        params: {
+          courseInstanceId: selectedCourse.courseInstanceId.toString(),
+          courseName: selectedCourse.courseName,
+          courseCode: selectedCourse.courseCode,
+        },
+      });
+    }
+  };
+
+  const handleNavigateToStudents = () => {
+    if (selectedCourse) {
+      setShowCourseOptions(false);
+      router.push({
+        pathname: '/instructor-manage-student',
+        params: {
+          courseInstanceId: selectedCourse.courseInstanceId.toString(),
+          courseName: selectedCourse.courseName,
+          courseCode: selectedCourse.courseCode,
+          courseInstanceName: selectedCourse.courseInstanceName,
+        },
+      });
+    }
   };
 
   const renderCourseCard = (course: CourseInstructor, index: number) => {
@@ -165,18 +191,102 @@ export default function MyClassScreen() {
               </ThemedText>
             </View>
           )}
-
-          <View style={styles.viewAction}>
-            <IconSymbol name="doc.text.fill" size={14} color={Colors.light.primary} style={styles.infoIcon} />
-            <ThemedText type="caption" style={styles.viewActionText}>
-              Tap to manage course
-            </ThemedText>
-            <IconSymbol name="chevron.right" size={14} color={Colors.light.primary} />
+  
+            <View style={styles.viewAction}>
+              <IconSymbol name="doc.text.fill" size={14} color={Colors.light.primary} style={styles.infoIcon} />
+              <ThemedText type="caption" style={styles.viewActionText}>
+                Tap to manage course
+              </ThemedText>
+              <IconSymbol name="chevron.right" size={14} color={Colors.light.primary} />
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+        </TouchableOpacity>
+      );
+    };
+  
+    const renderCourseOptionsModal = () => {
+      if (!selectedCourse) return null;
+  
+      return (
+        <Modal
+          visible={showCourseOptions}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowCourseOptions(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowCourseOptions(false)}
+          >
+            <Pressable style={[styles.modalContent, { backgroundColor: cardBg }]} onPress={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <View style={styles.modalHeaderInfo}>
+                  <ThemedText type="caption" style={styles.modalCourseCode}>
+                    {selectedCourse.courseCode}
+                  </ThemedText>
+                  <ThemedText type="subtitle" style={styles.modalCourseName}>
+                    {selectedCourse.courseName}
+                  </ThemedText>
+                  <ThemedText type="caption" style={styles.modalCourseInstanceName}>
+                    {selectedCourse.courseInstanceName}
+                  </ThemedText>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowCourseOptions(false)}
+                  style={styles.closeButton}
+                >
+                  <IconSymbol name="xmark" size={20} color={Colors.light.icon} />
+                </TouchableOpacity>
+              </View>
+  
+              {/* Options */}
+              <View style={styles.optionsContainer}>
+                {/* Assignments Option */}
+                <TouchableOpacity
+                  style={[styles.optionCard, { backgroundColor: `${Colors.light.primary}10` }]}
+                  onPress={handleNavigateToAssignments}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.optionIconContainer, { backgroundColor: Colors.light.primary }]}>
+                    <IconSymbol name="doc.text.fill" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.optionTextContainer}>
+                    <ThemedText type="title" style={styles.optionTitle}>
+                      Assignments
+                    </ThemedText>
+                    <ThemedText type="caption" style={styles.optionDescription}>
+                      Manage course assignments, grades & rubrics
+                    </ThemedText>
+                  </View>
+                  <IconSymbol name="chevron.right" size={20} color={Colors.light.primary} />
+                </TouchableOpacity>
+  
+                {/* Students Option */}
+                <TouchableOpacity
+                  style={[styles.optionCard, { backgroundColor: `${Colors.light.success}10` }]}
+                  onPress={handleNavigateToStudents}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.optionIconContainer, { backgroundColor: Colors.light.success }]}>
+                    <IconSymbol name="person.2.fill" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.optionTextContainer}>
+                    <ThemedText type="title" style={styles.optionTitle}>
+                      Students
+                    </ThemedText>
+                    <ThemedText type="caption" style={styles.optionDescription}>
+                      View, add or remove enrolled students
+                    </ThemedText>
+                  </View>
+                  <IconSymbol name="chevron.right" size={20} color={Colors.light.success} />
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      );
+    };
 
   const renderContent = () => {
     if (isLoading) {
@@ -242,7 +352,7 @@ export default function MyClassScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <ThemedText type="largeTitle">My Classes</ThemedText>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.refreshButton, { backgroundColor: primaryColor }]}
             onPress={handleRefresh}
             disabled={isLoading || isRefreshing}
@@ -252,6 +362,7 @@ export default function MyClassScreen() {
         </View>
 
         {renderContent()}
+        {renderCourseOptionsModal()}
       </SafeAreaView>
     </ThemedView>
   );
@@ -408,5 +519,74 @@ const styles = StyleSheet.create({
     color: Colors.light.primary,
     fontWeight: '600',
     flex: 1,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    ...Shadows.light.lg,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
+  },
+  modalHeaderInfo: {
+    flex: 1,
+  },
+  modalCourseCode: {
+    color: Colors.light.primary,
+    fontWeight: '600',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  modalCourseName: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  modalCourseInstanceName: {
+    opacity: 0.6,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  closeButton: {
+    padding: Spacing.xs,
+  },
+  optionsContainer: {
+    gap: Spacing.md,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.md,
+  },
+  optionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  optionDescription: {
+    opacity: 0.6,
+    fontSize: 12,
   },
 });

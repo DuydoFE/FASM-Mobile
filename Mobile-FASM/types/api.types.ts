@@ -375,3 +375,39 @@ export interface RubricDetail {
 }
 
 export type RubricDetailResponse = ApiResponse<RubricDetail>;
+
+/**
+ * Course Student Management Types (Instructor)
+ * For instructor managing students in a course
+ */
+export interface CourseStudentForInstructor {
+  courseStudentId: number;
+  courseInstanceId: number;
+  courseInstanceName: string;
+  courseCode: string;
+  courseName: string;
+  userId: number;
+  studentName: string;
+  studentEmail: string;
+  studentCode: string;
+  enrolledAt: string;
+  status: string;
+  finalGrade: number | null;
+  isPassed: boolean | null;
+  statusChangedAt: string | null;
+  changedByUserId: number | null;
+  changedByUserName: string | null;
+}
+
+export type CourseStudentListResponse = ApiResponse<CourseStudentForInstructor[]>;
+export type CourseStudentSingleResponse = ApiResponse<CourseStudentForInstructor>;
+
+export interface AddStudentRequest {
+  courseInstanceId: number;
+  studentCode: string;
+}
+
+export interface AddStudentBulkRequest {
+  courseInstanceId: number;
+  studentCodes: string[];
+}

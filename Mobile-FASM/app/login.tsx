@@ -69,13 +69,24 @@ export default function LoginScreen() {
         // Login successful - Save user data to Redux store
         dispatch(setCredentials(response.data));
         
+        // Check if user is an instructor
+        const isInstructor = response.data.roles?.some(
+          (role: string) => role.toLowerCase() === 'instructor'
+        );
+        
         Alert.alert(
           'Login Successful',
           `Welcome back, ${response.data.firstName} ${response.data.lastName}!`,
           [
             {
               text: 'OK',
-              onPress: () => router.replace('/(tabs)'),
+              onPress: () => {
+                if (isInstructor) {
+                  router.replace('/(tabs)/dashboard');
+                } else {
+                  router.replace('/(tabs)');
+                }
+              },
             },
           ]
         );

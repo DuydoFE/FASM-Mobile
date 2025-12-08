@@ -208,3 +208,76 @@ export interface PeerReviewTracking {
 }
 
 export type PeerReviewTrackingResponse = ApiResponse<PeerReviewTracking>;
+
+/**
+ * Search Types
+ * For instructor search functionality
+ */
+export interface SearchAssignment {
+  assignmentId: number;
+  title: string;
+  courseName: string;
+  courseId: number;
+  courseInstanceId: number;
+  descriptionSnippet: string | null;
+  type: 'Assignment';
+}
+
+export interface SearchFeedback {
+  feedbackId: number;
+  title: string;
+  content: string;
+  assignmentTitle: string;
+  courseId: number;
+  courseInstanceId: number;
+  courseName: string;
+  type: 'Feedback';
+}
+
+export interface SearchSummary {
+  summaryId: number;
+  title: string;
+  content: string;
+  assignmentTitle: string;
+  courseId: number;
+  courseInstanceId: number;
+  courseName: string;
+  type: 'Summary';
+}
+
+export interface SearchSubmission {
+  submissionId: number;
+  title: string;
+  studentName: string;
+  assignmentTitle: string;
+  courseId: number;
+  courseInstanceId: number;
+  courseName: string;
+  submittedAt: string;
+  type: 'Submission';
+}
+
+export interface SearchCriteria {
+  criteriaId: number;
+  title: string;
+  description: string;
+  rubricId: number;
+  rubricTitle: string;
+  assignmentTitle: string;
+  courseId: number;
+  courseInstanceId: number;
+  courseName: string;
+  maxScore: number;
+  weight: number;
+  type: 'Criteria';
+}
+
+export interface SearchData {
+  assignments: SearchAssignment[];
+  feedback: SearchFeedback[];
+  summaries: SearchSummary[];
+  submissions: SearchSubmission[];
+  criteria: SearchCriteria[];
+}
+
+export type SearchResponse = ApiResponse<SearchData>;

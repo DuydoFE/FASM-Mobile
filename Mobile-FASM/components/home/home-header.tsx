@@ -39,6 +39,11 @@ export function HomeHeader() {
   const user = useAppSelector(selectCurrentUser);
   const isLoggedIn = !!user;
   
+  // Check if user is instructor
+  const isInstructor = user?.roles?.some(
+    (role: string) => role.toLowerCase() === 'instructor'
+  );
+  
   const displayName = user
     ? `${user.firstName} ${user.lastName}`
     : 'Guest';
@@ -86,12 +91,14 @@ export function HomeHeader() {
         </TouchableOpacity>
       </View>
       
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}>
-          <IconSymbol name="magnifyingglass" size={18} color={Colors.light.icon} style={styles.searchIcon} />
-          <ThemedText style={styles.placeholder}>Search assignments, classes...</ThemedText>
+      {!isInstructor && (
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}>
+            <IconSymbol name="magnifyingglass" size={18} color={Colors.light.icon} style={styles.searchIcon} />
+            <ThemedText style={styles.placeholder}>Search assignments, classes...</ThemedText>
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 }

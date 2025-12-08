@@ -199,70 +199,34 @@ export default function InstructorCourseAssignmentsScreen() {
   };
 
   const renderFilterTabs = () => (
-    <View style={styles.filterWrapper}>
+    <View style={styles.filterContainer}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContainer}
+        contentContainerStyle={styles.filterContent}
       >
         {STATUS_FILTERS.map((filter) => {
           const isSelected = selectedFilter === filter;
-          const filterColor = getFilterColor(filter);
-          const count = filter === 'All'
-            ? assignments.length
-            : assignments.filter(
-                (a) => a.status.toLowerCase() === filter.toLowerCase() ||
-                       a.uiStatus?.toLowerCase() === filter.toLowerCase()
-              ).length;
-
-          // Skip filters with 0 count (except All)
-          if (count === 0 && filter !== 'All') {
-            return null;
-          }
 
           return (
             <TouchableOpacity
               key={filter}
               style={[
                 styles.filterChip,
-                isSelected && [styles.filterChipSelected, { backgroundColor: filterColor }],
-                !isSelected && styles.filterChipUnselected,
+                isSelected && { backgroundColor: primaryColor },
+                !isSelected && { backgroundColor: cardBg, borderWidth: 1, borderColor: borderColor }
               ]}
               onPress={() => setSelectedFilter(filter)}
-              activeOpacity={0.7}
             >
-              <IconSymbol
-                name={getFilterIcon(filter) as any}
-                size={14}
-                color={isSelected ? '#FFFFFF' : filterColor}
-              />
               <ThemedText
                 type="caption"
                 style={[
-                  styles.filterChipText,
-                  isSelected && styles.filterChipTextSelected,
-                  !isSelected && { color: filterColor },
+                  styles.filterText,
+                  isSelected && { color: '#FFFFFF' }
                 ]}
               >
                 {filter === 'InReview' ? 'In Review' : filter === 'GradesPublished' ? 'Published' : filter}
               </ThemedText>
-              <View style={[
-                styles.filterCountBadge,
-                isSelected
-                  ? { backgroundColor: 'rgba(255,255,255,0.3)' }
-                  : { backgroundColor: `${filterColor}20` }
-              ]}>
-                <ThemedText
-                  type="caption"
-                  style={[
-                    styles.filterCountText,
-                    isSelected && { color: '#FFFFFF' },
-                    !isSelected && { color: filterColor },
-                  ]}
-                >
-                  {count}
-                </ThemedText>
-              </View>
             </TouchableOpacity>
           );
         })}
@@ -785,48 +749,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
   },
-  filterWrapper: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-  },
   filterContainer: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  filterContent: {
+    paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
   },
   filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    marginRight: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  filterChipSelected: {
-    ...Shadows.light.sm,
-  },
-  filterChipUnselected: {
-    backgroundColor: 'rgba(0,0,0,0.03)',
-  },
-  filterChipText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  filterChipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  filterCountBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingVertical: 8,
     borderRadius: BorderRadius.full,
-    minWidth: 20,
-    alignItems: 'center',
   },
-  filterCountText: {
-    fontSize: 11,
-    fontWeight: '700',
+  filterText: {
+    fontWeight: '600',
   },
   countContainer: {
     paddingHorizontal: Spacing.lg,

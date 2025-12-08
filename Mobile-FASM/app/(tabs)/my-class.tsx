@@ -256,7 +256,7 @@ export default function MyClassScreen() {
                       Assignments
                     </ThemedText>
                     <ThemedText type="caption" style={styles.optionDescription}>
-                      Manage course assignments, grades & rubrics
+                      Manage course assignments & publish assignments
                     </ThemedText>
                   </View>
                   <IconSymbol name="chevron.right" size={20} color={Colors.light.primary} />

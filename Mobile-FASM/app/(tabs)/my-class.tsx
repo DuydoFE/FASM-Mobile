@@ -137,6 +137,21 @@ export default function MyClassScreen() {
     }
   };
 
+  const handleNavigateToStatistic = () => {
+    if (selectedCourse) {
+      setShowCourseOptions(false);
+      router.push({
+        pathname: '/instructor-statistic-courseinstance',
+        params: {
+          courseInstanceId: selectedCourse.courseInstanceId.toString(),
+          courseName: selectedCourse.courseName,
+          courseCode: selectedCourse.courseCode,
+          courseInstanceName: selectedCourse.courseInstanceName,
+        },
+      });
+    }
+  };
+
   const renderCourseCard = (course: CourseInstructor, index: number) => {
     const cardColor = getColorForIndex(index);
     
@@ -280,6 +295,26 @@ export default function MyClassScreen() {
                     </ThemedText>
                   </View>
                   <IconSymbol name="chevron.right" size={20} color={Colors.light.success} />
+                </TouchableOpacity>
+
+                {/* Statistic Option */}
+                <TouchableOpacity
+                  style={[styles.optionCard, { backgroundColor: `${Colors.light.warning}10` }]}
+                  onPress={handleNavigateToStatistic}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.optionIconContainer, { backgroundColor: Colors.light.warning }]}>
+                    <IconSymbol name="book.fill" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.optionTextContainer}>
+                    <ThemedText type="title" style={styles.optionTitle}>
+                      Statistic
+                    </ThemedText>
+                    <ThemedText type="caption" style={styles.optionDescription}>
+                      View course statistics and analytics
+                    </ThemedText>
+                  </View>
+                  <IconSymbol name="chevron.right" size={20} color={Colors.light.warning} />
                 </TouchableOpacity>
               </View>
             </Pressable>
@@ -445,7 +480,7 @@ const styles = StyleSheet.create({
     height: 80,
     padding: Spacing.md,
     position: 'relative',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'flex-start',
     flexDirection: 'row',
   },
@@ -466,6 +501,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
   },
   statusDot: {
     width: 8,
@@ -480,8 +518,9 @@ const styles = StyleSheet.create({
   bannerIcon: {
     position: 'absolute',
     right: Spacing.md,
-    bottom: Spacing.md,
-    transform: [{ scale: 2.5 }],
+    bottom: Spacing.sm,
+    transform: [{ scale: 2 }],
+    opacity: 0.5,
   },
   cardContent: {
     padding: Spacing.md,

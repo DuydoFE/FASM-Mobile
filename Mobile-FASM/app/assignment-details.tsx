@@ -146,7 +146,7 @@ export default function AssignmentDetailsScreen() {
         {/* Course Info Badge */}
         <View style={[styles.courseInfoBadge, { backgroundColor: primaryColor }]}>
           <ThemedText type="caption" style={styles.courseCodeText}>
-            {assignment.courseCode}
+            {assignment.courseCode} -
           </ThemedText>
           <ThemedText type="caption" style={styles.sectionCodeText}>
             {assignment.sectionCode}
@@ -265,12 +265,15 @@ export default function AssignmentDetailsScreen() {
           </View>
           
           <View style={styles.gradingInfoGrid}>
-            <View style={styles.gradingInfoItem}>
-              <ThemedText type="caption" style={styles.gradingInfoLabel}>Pass Threshold</ThemedText>
-              <ThemedText type="title" style={[styles.gradingInfoValue, { color: Colors.light.success }]}>
-                {assignment.passThreshold}%
-              </ThemedText>
-            </View>
+            {/* Only show Pass Threshold for PassFail grading scale */}
+            {assignment.gradingScale?.toLowerCase() === 'passfail' && (
+              <View style={styles.gradingInfoItem}>
+                <ThemedText type="caption" style={styles.gradingInfoLabel}>Pass Threshold</ThemedText>
+                <ThemedText type="title" style={[styles.gradingInfoValue, { color: Colors.light.success }]}>
+                  {assignment.passThreshold}
+                </ThemedText>
+              </View>
+            )}
             
             <View style={styles.gradingInfoItem}>
               <ThemedText type="caption" style={styles.gradingInfoLabel}>Peer Reviews</ThemedText>

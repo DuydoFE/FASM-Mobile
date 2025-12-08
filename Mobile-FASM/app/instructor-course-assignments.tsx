@@ -1,8 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Dimensions,
+  Modal,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -52,6 +56,9 @@ export default function InstructorCourseAssignmentsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<StatusFilter>('All');
   const [isActionLoading, setIsActionLoading] = useState<number | null>(null);
+  const [dropdownVisible, setDropdownVisible] = useState<number | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
   const courseInstanceId = params.courseInstanceId ? parseInt(params.courseInstanceId, 10) : null;
   
@@ -339,6 +346,39 @@ export default function InstructorCourseAssignmentsScreen() {
     );
   };
 
+  const openDropdown = (assignmentId: number, event: { nativeEvent: { pageX: number; pageY: number } }) => {
+    const screenWidth = Dimensions.get('window').width;
+    const dropdownWidth = 180;
+    
+    // Calculate position - align to the right side of the "..." button
+    const rightOffset = screenWidth - event.nativeEvent.pageX - 24;
+    
+    setDropdownPosition({
+      top: event.nativeEvent.pageY + 8,
+      right: Math.max(16, rightOffset),
+    });
+    
+    setDropdownVisible(assignmentId);
+    
+    // Animate dropdown opening
+    Animated.spring(dropdownAnimation, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 8,
+    }).start();
+  };
+
+  const closeDropdown = () => {
+    Animated.timing(dropdownAnimation, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      setDropdownVisible(null);
+    });
+  };
+
   const isDraftAssignment = (assignment: Assignment): boolean => {
     return assignment.status.toLowerCase() === 'draft' ||
            assignment.uiStatus?.toLowerCase() === 'draft';
@@ -380,6 +420,16 @@ export default function InstructorCourseAssignmentsScreen() {
             <ThemedText type="caption" style={styles.gradingScale}>
               {assignment.gradingScale}
             </ThemedText>
+            {/* More Options Button - Only for Draft */}
+            {isDraft && (
+              <TouchableOpacity
+                style={styles.moreButton}
+                onPress={(e) => openDropdown(assignment.assignmentId, e)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <IconSymbol name="ellipsis.vertical" size={18} color={Colors.light.icon} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -476,35 +526,107 @@ export default function InstructorCourseAssignmentsScreen() {
             </ThemedText>
           )}
         </View>
-
-        {/* Draft Actions */}
-        {isDraft && (
-          <View style={[styles.draftActionsContainer, { borderTopColor: borderColor }]}>
-            <TouchableOpacity
-              style={[styles.draftActionButton, styles.publishButton]}
-              onPress={() => handlePublishAssignment(assignment)}
-              disabled={isCurrentActionLoading}
-              activeOpacity={0.7}
-            >
-              <IconSymbol name="paperplane.fill" size={14} color="#FFFFFF" />
-              <ThemedText type="caption" style={styles.draftActionButtonText}>
-                Publish Assignment
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.draftActionButton, styles.deleteButton]}
-              onPress={() => handleDeleteAssignment(assignment)}
-              disabled={isCurrentActionLoading}
-              activeOpacity={0.7}
-            >
-              <IconSymbol name="trash.fill" size={14} color="#FFFFFF" />
-              <ThemedText type="caption" style={styles.draftActionButtonText}>
-                Delete Assignment
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-        )}
       </TouchableOpacity>
+    );
+  };
+
+  const renderDropdownMenu = () => {
+    if (dropdownVisible === null) return null;
+
+    const assignment = assignments.find(a => a.assignmentId === dropdownVisible);
+    if (!assignment) return null;
+
+    const scaleValue = dropdownAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.95, 1],
+    });
+
+    const opacityValue = dropdownAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+
+    const translateY = dropdownAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-8, 0],
+    });
+
+    return (
+      <Modal
+        visible={dropdownVisible !== null}
+        transparent
+        animationType="none"
+        onRequestClose={closeDropdown}
+      >
+        <Pressable style={styles.dropdownOverlay} onPress={closeDropdown}>
+          <Animated.View
+            style={[
+              styles.dropdownMenu,
+              {
+                backgroundColor: cardBg,
+                borderColor: borderColor,
+                top: dropdownPosition.top,
+                right: dropdownPosition.right,
+                transform: [{ scale: scaleValue }, { translateY }],
+                opacity: opacityValue,
+              },
+            ]}
+          >
+            {/* Menu Header */}
+            <View style={[styles.dropdownHeader, { borderBottomColor: borderColor }]}>
+              <ThemedText type="caption" style={styles.dropdownHeaderText}>
+                Actions
+              </ThemedText>
+            </View>
+
+            {/* Publish Option */}
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => {
+                closeDropdown();
+                setTimeout(() => handlePublishAssignment(assignment), 200);
+              }}
+              activeOpacity={0.6}
+            >
+              <View style={[styles.dropdownIconContainer, styles.publishIconBg]}>
+                <IconSymbol name="paperplane.fill" size={18} color={Colors.light.success} />
+              </View>
+              <View style={styles.dropdownTextContainer}>
+                <ThemedText type="default" style={styles.dropdownItemText}>
+                  Publish
+                </ThemedText>
+                <ThemedText type="caption" style={styles.dropdownItemSubtext}>
+                  Make visible to students
+                </ThemedText>
+              </View>
+              <IconSymbol name="chevron.right" size={16} color={Colors.light.icon} />
+            </TouchableOpacity>
+
+            {/* Delete Option */}
+            <TouchableOpacity
+              style={[styles.dropdownItem, styles.dropdownItemDanger, { borderTopColor: `${Colors.light.error}20` }]}
+              onPress={() => {
+                closeDropdown();
+                setTimeout(() => handleDeleteAssignment(assignment), 200);
+              }}
+              activeOpacity={0.6}
+            >
+              <View style={[styles.dropdownIconContainer, styles.deleteIconBg]}>
+                <IconSymbol name="trash.fill" size={18} color={Colors.light.error} />
+              </View>
+              <View style={styles.dropdownTextContainer}>
+                <ThemedText type="default" style={[styles.dropdownItemText, styles.dropdownItemTextDanger]}>
+                  Delete
+                </ThemedText>
+                <ThemedText type="caption" style={styles.dropdownItemSubtext}>
+                  Cannot be undone
+                </ThemedText>
+              </View>
+              <IconSymbol name="chevron.right" size={16} color={`${Colors.light.error}80`} />
+            </TouchableOpacity>
+          </Animated.View>
+        </Pressable>
+      </Modal>
     );
   };
 
@@ -615,6 +737,9 @@ export default function InstructorCourseAssignmentsScreen() {
         )}
 
         {renderContent()}
+        
+        {/* Dropdown Menu */}
+        {renderDropdownMenu()}
       </SafeAreaView>
     </ThemedView>
   );
@@ -863,33 +988,78 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderRadius: BorderRadius.lg,
   },
-  draftActionsContainer: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    paddingTop: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
-    gap: Spacing.sm,
+  moreButton: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(79, 70, 229, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: Spacing.xs,
   },
-  draftActionButton: {
+  dropdownOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    width: 240,
+    borderRadius: BorderRadius.lg,
+    ...Shadows.light.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  dropdownHeader: {
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 1,
+  },
+  dropdownHeaderText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.5,
+  },
+  dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.sm + 4,
     paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+    backgroundColor: 'transparent',
+  },
+  dropdownItemDanger: {
+    borderTopWidth: 1,
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+  },
+  dropdownIconContainer: {
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.md,
-    gap: Spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  publishButton: {
-    backgroundColor: Colors.light.success,
+  publishIconBg: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
-  deleteButton: {
-    backgroundColor: Colors.light.error,
+  deleteIconBg: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
-  draftActionButtonText: {
-    color: '#FFFFFF',
+  dropdownTextContainer: {
+    flex: 1,
+  },
+  dropdownItemText: {
+    fontSize: 15,
     fontWeight: '600',
+  },
+  dropdownItemTextDanger: {
+    color: Colors.light.error,
+  },
+  dropdownItemSubtext: {
     fontSize: 12,
+    opacity: 0.5,
+    marginTop: 2,
   },
 });

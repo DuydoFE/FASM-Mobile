@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -16,6 +17,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getAssignmentDetails, getPeerReviewTracking } from '@/services/assignment.service';
+import { selectCurrentUser } from '@/store/slices/authSlice';
 import { AssignmentDetail, PeerReviewTracking } from '@/types/api.types';
 
 export default function AssignmentDetailsScreen() {
@@ -28,6 +30,10 @@ export default function AssignmentDetailsScreen() {
   const cardBg = useThemeColor({}, 'backgroundSecondary');
   const primaryColor = useThemeColor({}, 'primary');
   const borderColor = useThemeColor({}, 'border');
+
+  // Get current user to check role
+  const currentUser = useSelector(selectCurrentUser);
+  const isInstructor = currentUser?.roles?.includes('Instructor') ?? false;
 
   const [assignment, setAssignment] = useState<AssignmentDetail | null>(null);
   const [peerReviewTracking, setPeerReviewTracking] = useState<PeerReviewTracking | null>(null);
@@ -304,8 +310,8 @@ export default function AssignmentDetailsScreen() {
           </View>
         </View>
 
-        {/* Peer Review Tracking Section */}
-        {peerReviewTracking && (
+        {/* Peer Review Tracking Section - Only show for students */}
+        {peerReviewTracking && !isInstructor && (
           <View style={[styles.section, { backgroundColor: cardBg }]}>
             <View style={styles.sectionHeader}>
               <IconSymbol name="person.2.fill" size={18} color={primaryColor} />

@@ -98,6 +98,43 @@ export interface EnrollWithKeyRequest {
 export type EnrollWithKeyResponse = ApiResponse<CourseStudent>;
 
 /**
+ * Assignment Status Enum
+ * Status values for assignments
+ */
+export enum AssignmentStatus {
+  Active = 'Active',
+  InReview = 'InReview',
+  Closed = 'Closed',
+  Cancelled = 'Cancelled',
+  UpComing = 'UpComing',
+  GradesPublished = 'GradesPublished',
+}
+
+/**
+ * Student Assignment with Tracking Types
+ * For student's assignments list with review tracking progress
+ */
+export interface StudentAssignmentWithTracking {
+  assignmentId: number;
+  title: string;
+  startDate: string;
+  deadline: string;
+  reviewDeadline: string;
+  finalDeadline: string;
+  status: AssignmentStatus;
+  courseInstanceId: number;
+  courseName: string;
+  courseCode: string;
+  numPeerReviewsRequired: number;
+  completedReviewsCount: number;
+  pendingReviewsCount: number;
+  hasSubmission: boolean;
+  submissionStatus: string | null;
+}
+
+export type StudentAssignmentWithTrackingResponse = ApiResponse<StudentAssignmentWithTracking[]>;
+
+/**
  * Assignment Types
  * For course assignments/tasks
  */
@@ -208,6 +245,74 @@ export interface PeerReviewTracking {
 }
 
 export type PeerReviewTrackingResponse = ApiResponse<PeerReviewTracking>;
+
+/**
+ * Random Review Types
+ * For getting a random submission to review
+ */
+export interface RandomReviewRubricCriteria {
+  criteriaId: number;
+  rubricId: number;
+  rubricTitle: string;
+  criteriaTemplateId: number;
+  criteriaTemplateTitle: string | null;
+  title: string;
+  assignmentTitle: string | null;
+  description: string;
+  weight: number;
+  maxScore: number;
+  scoringType: string;
+  scoreLabel: string;
+  isModified: boolean;
+  criteriaFeedbackCount: number;
+  courseName: string | null;
+  className: string | null;
+  assignmentStatus: string | null;
+}
+
+export interface RandomReviewRubricAssignmentUsing {
+  assignmentId: number;
+  title: string;
+  courseName: string;
+  className: string;
+  campusName: string;
+  deadline: string;
+}
+
+export interface RandomReviewRubric {
+  rubricId: number;
+  templateId: number;
+  templateTitle: string;
+  assignmentId: number;
+  assignmentTitle: string;
+  title: string;
+  isModified: boolean;
+  criteriaCount: number;
+  gradingScale: string;
+  assignmentStatus: string;
+  courseName: string;
+  className: string;
+  criteria: RandomReviewRubricCriteria[];
+  assignmentsUsingTemplate: RandomReviewRubricAssignmentUsing[];
+}
+
+export interface RandomReviewAssignment {
+  reviewAssignmentId: number;
+  submissionId: number;
+  assignmentId: number;
+  status: string;
+  assignedAt: string;
+  deadline: string;
+  assignmentTitle: string;
+  assignmentDescription: string;
+  assignmentGuidelines: string;
+  studentName: string;
+  fileUrl: string;
+  fileName: string;
+  rubric: RandomReviewRubric;
+}
+
+export type RandomReviewResponse = ApiResponse<RandomReviewAssignment>;
 
 /**
  * Search Types
@@ -411,3 +516,43 @@ export interface AddStudentBulkRequest {
   courseInstanceId: number;
   studentCodes: string[];
 }
+
+/**
+ * Submit Review Types
+ * For submitting peer review with scores and feedback
+ */
+export interface CriteriaFeedback {
+  criteriaId: number;
+  score: number;
+  feedback: string;
+}
+
+export interface SubmitReviewRequest {
+  reviewAssignmentId: number;
+  reviewerUserId: number;
+  generalFeedback: string;
+  criteriaFeedbacks: CriteriaFeedback[];
+}
+
+export type SubmitReviewResponse = ApiResponse<null>;
+
+/**
+ * AI Criteria Feedback Types
+ * For generating AI criteria feedback for a submission
+ */
+export interface AICriteriaFeedback {
+  criteriaId: number;
+  title: string;
+  description: string;
+  summary: string;
+  score: number;
+  maxScore: number;
+}
+
+export interface AICriteriaFeedbackData {
+  feedbacks: AICriteriaFeedback[];
+  isRelevant: boolean;
+  errorMessage: string | null;
+}
+
+export type AICriteriaFeedbackResponse = ApiResponse<AICriteriaFeedbackData>;

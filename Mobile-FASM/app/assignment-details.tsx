@@ -321,7 +321,7 @@ export default function AssignmentDetailsScreen() {
                     Completed / Required
                   </ThemedText>
                   <ThemedText type="title" style={styles.peerReviewStatValue}>
-                    {peerReviewTracking.pendingReviewsCount}/{peerReviewTracking.numPeerReviewsRequired}
+                    {peerReviewTracking.completedReviewsCount}/{peerReviewTracking.numPeerReviewsRequired}
                   </ThemedText>
                 </View>
                 
@@ -336,7 +336,9 @@ export default function AssignmentDetailsScreen() {
                         ? Colors.light.primary
                         : peerReviewTracking.status === 'Completed'
                           ? Colors.light.success
-                          : Colors.light.icon
+                          : peerReviewTracking.status === 'Pending'
+                            ? Colors.light.warning
+                            : Colors.light.icon
                     }
                   ]}>
                     <ThemedText type="caption" style={styles.statusBadgeText}>
@@ -345,27 +347,41 @@ export default function AssignmentDetailsScreen() {
                   </View>
                 </View>
               </View>
+
+              {/* Pending Reviews Info */}
+              {peerReviewTracking.pendingReviewsCount > 0 && (
+                <View style={styles.pendingReviewsInfo}>
+                  <IconSymbol name="clock.fill" size={14} color={Colors.light.warning} />
+                  <ThemedText type="caption" style={styles.pendingReviewsText}>
+                    {peerReviewTracking.pendingReviewsCount} review{peerReviewTracking.pendingReviewsCount !== 1 ? 's' : ''} pending
+                  </ThemedText>
+                </View>
+              )}
               
               <TouchableOpacity
                 style={[
                   styles.peerReviewButton,
                   {
-                    backgroundColor: peerReviewTracking.status === 'InReview'
+                    backgroundColor: peerReviewTracking.completedReviewsCount < peerReviewTracking.numPeerReviewsRequired
                       ? primaryColor
-                      : Colors.light.icon,
-                    opacity: peerReviewTracking.status === 'InReview' ? 1 : 0.5,
+                      : Colors.light.success,
                   }
                 ]}
-                disabled={peerReviewTracking.status !== 'InReview'}
+                disabled={peerReviewTracking.completedReviewsCount >= peerReviewTracking.numPeerReviewsRequired}
                 onPress={() => {
-                  // Navigate to peer review screen
-                  // router.push(`/peer-review?assignmentId=${assignmentId}`);
-                  console.log('Navigate to peer review');
+                  router.push({
+                    pathname: '/peer-review',
+                    params: {
+                      assignmentId: assignmentId?.toString() || '',
+                    },
+                  });
                 }}
               >
                 <IconSymbol name="pencil.and.outline" size={18} color="#FFFFFF" />
                 <ThemedText type="default" style={styles.peerReviewButtonText}>
-                  Peer Review
+                  {peerReviewTracking.completedReviewsCount >= peerReviewTracking.numPeerReviewsRequired
+                    ? 'All Reviews Completed'
+                    : 'Start Peer Review'}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -618,6 +634,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 12,
+  },
+  pendingReviewsInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: BorderRadius.sm,
+  },
+  pendingReviewsText: {
+    color: Colors.light.warning,
+    fontWeight: '500',
   },
   peerReviewButton: {
     flexDirection: 'row',

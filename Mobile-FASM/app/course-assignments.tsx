@@ -15,8 +15,18 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { getAssignmentsByCourseInstance } from '@/services/assignment.service';
-import { Assignment } from '@/types/api.types';
+import { getStudentAssignmentsWithTracking } from '@/services/assignment.service';
+import { AssignmentStatus, StudentAssignmentWithTracking } from '@/types/api.types';
+
+// Status color mapping for assignment status enum
+const STATUS_COLORS: Record<AssignmentStatus, string> = {
+  [AssignmentStatus.Active]: '#22C55E', // Green - Active assignments
+  [AssignmentStatus.InReview]: '#3B82F6', // Blue - In review phase
+  [AssignmentStatus.Closed]: '#6B7280', // Gray - Closed assignments
+  [AssignmentStatus.Cancelled]: '#EF4444', // Red - Cancelled assignments
+  [AssignmentStatus.UpComing]: '#F59E0B', // Orange/Amber - Upcoming assignments
+  [AssignmentStatus.GradesPublished]: '#8B5CF6', // Purple - Grades published
+};
 
 export default function CourseAssignmentsScreen() {
   const router = useRouter();
@@ -29,7 +39,7 @@ export default function CourseAssignmentsScreen() {
   const primaryColor = useThemeColor({}, 'primary');
   const borderColor = useThemeColor({}, 'border');
 
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignments, setAssignments] = useState<StudentAssignmentWithTracking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +65,7 @@ export default function CourseAssignmentsScreen() {
       }
       setError(null);
 
-      const data = await getAssignmentsByCourseInstance(courseInstanceId);
+      const data = await getStudentAssignmentsWithTracking(courseInstanceId);
       setAssignments(data);
     } catch (err) {
       setError('Failed to load assignments. Please try again.');
@@ -93,26 +103,30 @@ export default function CourseAssignmentsScreen() {
     });
   };
 
-  const getStatusColor = (status: string): string => {
-    switch (status.toLowerCase()) {
-      case 'open':
-      case 'active':
-        return Colors.light.success;
-      case 'inreview':
-      case 'in review':
-        return Colors.light.primary;
-      case 'closed':
-      case 'completed':
-        return Colors.light.icon;
-      case 'upcoming':
-      case 'draft':
-        return Colors.light.warning;
+  const getStatusColor = (status: AssignmentStatus): string => {
+    return STATUS_COLORS[status] || Colors.light.icon;
+  };
+
+  const getStatusDisplayName = (status: AssignmentStatus): string => {
+    switch (status) {
+      case AssignmentStatus.Active:
+        return 'Active';
+      case AssignmentStatus.InReview:
+        return 'In Review';
+      case AssignmentStatus.Closed:
+        return 'Closed';
+      case AssignmentStatus.Cancelled:
+        return 'Cancelled';
+      case AssignmentStatus.UpComing:
+        return 'Upcoming';
+      case AssignmentStatus.GradesPublished:
+        return 'Grades Published';
       default:
-        return Colors.light.icon;
+        return status;
     }
   };
 
-  const handleAssignmentPress = (assignment: Assignment) => {
+  const handleAssignmentPress = (assignment: StudentAssignmentWithTracking) => {
     router.push({
       pathname: '/assignment-details',
       params: {
@@ -121,8 +135,8 @@ export default function CourseAssignmentsScreen() {
     });
   };
 
-  const renderAssignmentCard = (assignment: Assignment) => {
-    const statusColor = getStatusColor(assignment.uiStatus || assignment.status);
+  const renderAssignmentCard = (assignment: StudentAssignmentWithTracking) => {
+    const statusColor = getStatusColor(assignment.status);
 
     return (
       <TouchableOpacity
@@ -135,103 +149,86 @@ export default function CourseAssignmentsScreen() {
         <View style={styles.cardHeader}>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
             <ThemedText type="caption" style={styles.statusText}>
-              {assignment.uiStatus || assignment.status}
+              {getStatusDisplayName(assignment.status)}
             </ThemedText>
           </View>
           <View style={styles.headerRight}>
-            {assignment.isOverdue && (
-              <View style={[styles.overdueBadge, { backgroundColor: Colors.light.error }]}>
-                <ThemedText type="caption" style={styles.overdueText}>Overdue</ThemedText>
+            {assignment.hasSubmission && (
+              <View style={[styles.submittedBadge, { backgroundColor: Colors.light.success }]}>
+                <ThemedText type="caption" style={styles.submittedText}>Submitted</ThemedText>
               </View>
             )}
-            <ThemedText type="caption" style={styles.gradingScale}>
-              {assignment.gradingScale}
-            </ThemedText>
           </View>
         </View>
 
-        {/* Title & Description */}
+        {/* Title */}
         <View style={styles.cardContent}>
           <ThemedText type="title" style={styles.assignmentTitle}>
             {assignment.title}
-          </ThemedText>
-          <ThemedText type="default" style={styles.description} numberOfLines={2}>
-            {assignment.description}
           </ThemedText>
         </View>
 
         {/* Dates */}
         <View style={[styles.datesContainer, { borderTopColor: borderColor }]}>
-          <View style={styles.dateItem}>
-            <IconSymbol name="play.circle.fill" size={14} color={Colors.light.success} />
-            <ThemedText type="caption" style={styles.dateLabel}>Start:</ThemedText>
-            <ThemedText type="caption" style={styles.dateValue}>
-              {formatShortDate(assignment.startDate)}
-            </ThemedText>
+          <View style={styles.dateRow}>
+            <View style={styles.dateItem}>
+              <IconSymbol name="play.circle.fill" size={14} color={Colors.light.success} />
+              <ThemedText type="caption" style={styles.dateLabel}>Start:</ThemedText>
+              <ThemedText type="caption" style={styles.dateValue}>
+                {formatShortDate(assignment.startDate)}
+              </ThemedText>
+            </View>
+            <View style={styles.dateItem}>
+              <IconSymbol name="clock.fill" size={14} color={Colors.light.warning} />
+              <ThemedText type="caption" style={styles.dateLabel}>Deadline:</ThemedText>
+              <ThemedText type="caption" style={styles.dateValue}>
+                {formatShortDate(assignment.deadline)}
+              </ThemedText>
+            </View>
           </View>
-          <View style={styles.dateItem}>
-            <IconSymbol name="clock.fill" size={14} color={Colors.light.warning} />
-            <ThemedText type="caption" style={styles.dateLabel}>Due:</ThemedText>
-            <ThemedText type="caption" style={styles.dateValue}>
-              {formatShortDate(assignment.deadline)}
-            </ThemedText>
-          </View>
-          <View style={styles.dateItem}>
-            <IconSymbol name="xmark.circle.fill" size={14} color={Colors.light.error} />
-            <ThemedText type="caption" style={styles.dateLabel}>Final:</ThemedText>
-            <ThemedText type="caption" style={styles.dateValue}>
-              {formatShortDate(assignment.finalDeadline)}
-            </ThemedText>
+          <View style={styles.dateRow}>
+            <View style={styles.dateItem}>
+              <IconSymbol name="person.2.fill" size={14} color={Colors.light.primary} />
+              <ThemedText type="caption" style={styles.dateLabel}>Review:</ThemedText>
+              <ThemedText type="caption" style={styles.dateValue}>
+                {formatShortDate(assignment.reviewDeadline)}
+              </ThemedText>
+            </View>
+            <View style={styles.dateItem}>
+              <IconSymbol name="xmark.circle.fill" size={14} color={Colors.light.error} />
+              <ThemedText type="caption" style={styles.dateLabel}>Final:</ThemedText>
+              <ThemedText type="caption" style={styles.dateValue}>
+                {formatShortDate(assignment.finalDeadline)}
+              </ThemedText>
+            </View>
           </View>
         </View>
 
-        {/* Days Until Deadline */}
-        {assignment.daysUntilDeadline !== null && (
-          <View style={styles.daysRow}>
-            <IconSymbol
-              name={assignment.daysUntilDeadline < 0 ? "exclamationmark.triangle.fill" : "calendar"}
-              size={12}
-              color={assignment.daysUntilDeadline < 0 ? Colors.light.error : Colors.light.icon}
-            />
-            <ThemedText
-              type="caption"
+        {/* Review Progress */}
+        <View style={styles.reviewProgressContainer}>
+          <View style={styles.reviewProgressHeader}>
+            <IconSymbol name="person.2.fill" size={14} color={Colors.light.icon} />
+            <ThemedText type="caption" style={styles.reviewProgressLabel}>
+              Peer Review Progress
+            </ThemedText>
+          </View>
+          <View style={styles.reviewProgressBar}>
+            <View
               style={[
-                styles.daysText,
-                assignment.daysUntilDeadline < 0 && { color: Colors.light.error }
+                styles.reviewProgressFill,
+                {
+                  width: `${(assignment.completedReviewsCount / assignment.numPeerReviewsRequired) * 100}%`,
+                  backgroundColor: assignment.completedReviewsCount >= assignment.numPeerReviewsRequired
+                    ? Colors.light.success
+                    : Colors.light.primary
+                }
               ]}
-            >
-              {assignment.daysUntilDeadline < 0
-                ? `${Math.abs(assignment.daysUntilDeadline)} days overdue`
-                : assignment.daysUntilDeadline === 0
-                  ? 'Due today'
-                  : `${assignment.daysUntilDeadline} days left`
-              }
-            </ThemedText>
+            />
           </View>
-        )}
-
-        {/* Info Row */}
-        <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <IconSymbol name="person.2.fill" size={12} color={Colors.light.icon} />
-            <ThemedText type="caption" style={styles.infoText}>
-              {assignment.numPeerReviewsRequired} peer reviews
-            </ThemedText>
-          </View>
-          {assignment.passThreshold && (
-            <View style={styles.infoItem}>
-              <IconSymbol name="checkmark.seal.fill" size={12} color={Colors.light.icon} />
-              <ThemedText type="caption" style={styles.infoText}>
-                Pass: {assignment.passThreshold}%
-              </ThemedText>
-            </View>
-          )}
-          {assignment.isBlindReview && (
-            <View style={styles.infoItem}>
-              <IconSymbol name="eye.slash.fill" size={12} color={Colors.light.icon} />
-              <ThemedText type="caption" style={styles.infoText}>Blind</ThemedText>
-            </View>
-          )}
+          <ThemedText type="caption" style={styles.reviewProgressText}>
+            {assignment.completedReviewsCount} / {assignment.numPeerReviewsRequired} reviews completed
+            {assignment.pendingReviewsCount > 0 && ` (${assignment.pendingReviewsCount} pending)`}
+          </ThemedText>
         </View>
       </TouchableOpacity>
     );
@@ -466,16 +463,20 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   datesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderTopWidth: 1,
+    gap: Spacing.xs,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   dateItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flex: 1,
   },
   dateLabel: {
     opacity: 0.5,
@@ -484,6 +485,44 @@ const styles = StyleSheet.create({
   dateValue: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  submittedBadge: {
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  submittedText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 10,
+  },
+  reviewProgressContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  reviewProgressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  reviewProgressLabel: {
+    opacity: 0.6,
+    fontSize: 11,
+  },
+  reviewProgressBar: {
+    height: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  reviewProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  reviewProgressText: {
+    opacity: 0.6,
+    fontSize: 11,
   },
   infoRow: {
     flexDirection: 'row',

@@ -250,7 +250,11 @@ export default function InstructorManageStudentScreen() {
           onPress: async () => {
             try {
               setIsActionLoading(student.courseStudentId);
-              await deleteStudentFromCourse(student.courseStudentId);
+              await deleteStudentFromCourse(
+                student.userId,
+                student.courseInstanceId,
+                student.courseStudentId
+              );
               Alert.alert('Success', 'Student removed successfully!');
               fetchStudents(true);
             } catch (err) {

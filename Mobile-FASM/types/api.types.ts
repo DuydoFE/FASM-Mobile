@@ -328,8 +328,50 @@ export interface Rubric {
   assignmentStatus: string;
   courseName: string;
   className: string;
-  criteria: RubricCriteria[];
   assignmentsUsingTemplate: RubricAssignmentUsing[];
 }
 
 export type RubricListResponse = ApiResponse<Rubric[]>;
+
+/**
+ * Rubric Detail Types
+ * For single rubric details with criteria
+ */
+export interface RubricDetailCriteria {
+  criteriaId: number;
+  rubricId: number;
+  rubricTitle: string;
+  criteriaTemplateId: number;
+  criteriaTemplateTitle: string | null;
+  title: string;
+  assignmentTitle: string | null;
+  description: string;
+  weight: number;
+  maxScore: number;
+  scoringType: string;
+  scoreLabel: string;
+  isModified: boolean;
+  criteriaFeedbackCount: number;
+  courseName: string | null;
+  className: string | null;
+  assignmentStatus: string | null;
+}
+
+export interface RubricDetail {
+  rubricId: number;
+  templateId: number;
+  templateTitle: string;
+  assignmentId: number;
+  assignmentTitle: string;
+  title: string;
+  isModified: boolean;
+  criteriaCount: number;
+  gradingScale: string | null;
+  assignmentStatus: string;
+  courseName: string;
+  className: string;
+  criteria: RubricDetailCriteria[];
+  assignmentsUsingTemplate: RubricAssignmentUsing[];
+}
+
+export type RubricDetailResponse = ApiResponse<RubricDetail>;

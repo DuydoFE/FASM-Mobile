@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -80,13 +81,20 @@ export default function RubricScreen() {
     });
   };
 
+  const router = useRouter();
+
+  const handleRubricPress = (rubricId: number) => {
+    router.push(`/rubric-detail?rubricId=${rubricId}`);
+  };
+
   const renderRubricItem = ({ item }: { item: Rubric }) => {
     const statusColor = getStatusColor(item.assignmentStatus);
     
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
         activeOpacity={0.7}
+        onPress={() => handleRubricPress(item.rubricId)}
       >
         <View style={[styles.cardHeader, { borderLeftColor: statusColor }]}>
           <View style={styles.headerContent}>
@@ -105,25 +113,8 @@ export default function RubricScreen() {
         
         <View style={styles.criteriaContainer}>
           <ThemedText type="caption" style={styles.criteriaLabel}>
-            Criteria ({item.criteriaCount}):
+            Criteria: {item.criteriaCount}
           </ThemedText>
-          <View style={styles.criteriaList}>
-            {item.criteria.slice(0, 3).map((criterion, index) => (
-              <View key={criterion.criteriaId} style={styles.criteriaItem}>
-                <ThemedText type="caption" style={styles.criteriaName}>
-                  • {criterion.title}
-                </ThemedText>
-                <ThemedText type="caption" style={styles.criteriaWeight}>
-                  {criterion.weight}% | {criterion.scoreLabel}
-                </ThemedText>
-              </View>
-            ))}
-            {item.criteria.length > 3 && (
-              <ThemedText type="caption" style={styles.moreCriteria}>
-                +{item.criteria.length - 3} more criteria
-              </ThemedText>
-            )}
-          </View>
         </View>
 
         <View style={styles.cardFooter}>
@@ -310,28 +301,7 @@ const styles = StyleSheet.create({
   },
   criteriaLabel: {
     fontWeight: '600',
-    marginBottom: Spacing.xs,
-  },
-  criteriaList: {
-    gap: 4,
-  },
-  criteriaItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  criteriaName: {
-    flex: 1,
     opacity: 0.7,
-  },
-  criteriaWeight: {
-    opacity: 0.5,
-    fontSize: 11,
-  },
-  moreCriteria: {
-    opacity: 0.5,
-    fontStyle: 'italic',
-    marginTop: 4,
   },
   cardFooter: {
     flexDirection: 'row',

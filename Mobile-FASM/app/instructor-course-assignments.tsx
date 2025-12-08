@@ -178,7 +178,7 @@ export default function InstructorCourseAssignmentsScreen() {
   const getFilterIcon = (filter: StatusFilter): string => {
     switch (filter.toLowerCase()) {
       case 'all':
-        return 'square.grid.2x2.fill';
+        return 'circle.grid.3x3.fill';
       case 'active':
         return 'play.circle.fill';
       case 'inreview':

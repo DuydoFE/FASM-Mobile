@@ -64,8 +64,8 @@ export default function DashboardScreen() {
               onPress={() => router.push('/(tabs)/notifications')}
             />
             <FeatureCard
-              title="Students"
-              subtitle="Manage enrollments"
+              title="Profile"
+              subtitle="Manage profile"
               color={Colors.light.success}
               icon="person.2.fill"
               onPress={() => {

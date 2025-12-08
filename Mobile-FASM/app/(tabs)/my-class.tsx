@@ -137,20 +137,6 @@ export default function MyClassScreen() {
     }
   };
 
-  const handleNavigateToStatistic = () => {
-    if (selectedCourse) {
-      setShowCourseOptions(false);
-      router.push({
-        pathname: '/instructor-statistic-courseinstance',
-        params: {
-          courseInstanceId: selectedCourse.courseInstanceId.toString(),
-          courseName: selectedCourse.courseName,
-          courseCode: selectedCourse.courseCode,
-          courseInstanceName: selectedCourse.courseInstanceName,
-        },
-      });
-    }
-  };
 
   const renderCourseCard = (course: CourseInstructor, index: number) => {
     const cardColor = getColorForIndex(index);
@@ -295,26 +281,6 @@ export default function MyClassScreen() {
                     </ThemedText>
                   </View>
                   <IconSymbol name="chevron.right" size={20} color={Colors.light.success} />
-                </TouchableOpacity>
-
-                {/* Statistic Option */}
-                <TouchableOpacity
-                  style={[styles.optionCard, { backgroundColor: `${Colors.light.warning}10` }]}
-                  onPress={handleNavigateToStatistic}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.optionIconContainer, { backgroundColor: Colors.light.warning }]}>
-                    <IconSymbol name="book.fill" size={24} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.optionTextContainer}>
-                    <ThemedText type="title" style={styles.optionTitle}>
-                      Statistic
-                    </ThemedText>
-                    <ThemedText type="caption" style={styles.optionDescription}>
-                      View course statistics and analytics
-                    </ThemedText>
-                  </View>
-                  <IconSymbol name="chevron.right" size={20} color={Colors.light.warning} />
                 </TouchableOpacity>
               </View>
             </Pressable>

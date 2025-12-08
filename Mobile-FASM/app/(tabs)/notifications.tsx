@@ -1,5 +1,5 @@
-import React from 'react';
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -7,59 +7,64 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { getMyNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '@/services/notification.service';
+import { Notification } from '@/types/api.types';
 
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    title: 'Assignment Due Soon',
-    message: 'OOP Lab 3 is due tomorrow at 11:59 PM. Don\'t forget to submit!',
-    time: '2 hours ago',
-    type: 'alert',
-    read: false,
-    icon: 'exclamationmark.circle.fill',
-    color: Colors.light.error,
-  },
-  {
-    id: '2',
-    title: 'New Grade Posted',
-    message: 'Your grade for Database Design Project has been posted.',
-    time: 'Yesterday',
-    type: 'success',
-    read: true,
-    icon: 'checkmark.circle.fill',
-    color: Colors.light.success,
-  },
-  {
-    id: '3',
-    title: 'Class Cancelled',
-    message: 'Mobile Development class on Friday is cancelled.',
-    time: '2 days ago',
-    type: 'info',
-    read: true,
-    icon: 'info.circle.fill',
-    color: Colors.light.info,
-  },
-  {
-    id: '4',
-    title: 'New Assignment Available',
-    message: 'Algorithm Analysis Report is now available.',
-    time: '3 days ago',
-    type: 'warning',
-    read: true,
-    icon: 'doc.text.fill',
-    color: Colors.light.warning,
-  },
-  {
-    id: '5',
-    title: 'System Maintenance',
-    message: 'FASM will be undergoing maintenance on Sunday from 2 AM to 4 AM.',
-    time: '1 week ago',
-    type: 'system',
-    read: true,
-    icon: 'gearshape.fill',
-    color: Colors.light.icon,
-  },
-];
+// Helper function to format relative time
+const formatRelativeTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return 'Just now';
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  } else if (diffInSeconds < 2592000) {
+    const weeks = Math.floor(diffInSeconds / 604800);
+    return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+  } else {
+    const months = Math.floor(diffInSeconds / 2592000);
+    return `${months} month${months > 1 ? 's' : ''} ago`;
+  }
+};
+
+// Helper function to get icon and color based on notification type
+const getNotificationStyle = (type: string): { icon: string; color: string } => {
+  switch (type.toLowerCase()) {
+    case 'assignment':
+    case 'new_assignment':
+      return { icon: 'doc.text.fill', color: Colors.light.warning };
+    case 'deadline':
+    case 'due_soon':
+      return { icon: 'exclamationmark.circle.fill', color: Colors.light.error };
+    case 'grade':
+    case 'grade_posted':
+      return { icon: 'checkmark.circle.fill', color: Colors.light.success };
+    case 'review':
+    case 'peer_review':
+      return { icon: 'person.2.fill', color: Colors.light.primary };
+    case 'submission':
+      return { icon: 'arrow.up.doc.fill', color: Colors.light.info };
+    case 'system':
+    case 'maintenance':
+      return { icon: 'gearshape.fill', color: Colors.light.icon };
+    case 'info':
+      return { icon: 'info.circle.fill', color: Colors.light.info };
+    case 'announcement':
+      return { icon: 'megaphone.fill', color: Colors.light.primary };
+    default:
+      return { icon: 'bell.fill', color: Colors.light.primary };
+  }
+};
 
 export default function NotificationsScreen() {
   const backgroundColor = useThemeColor({}, 'background');
@@ -67,47 +72,200 @@ export default function NotificationsScreen() {
   const textColor = useThemeColor({}, 'text');
   const primaryColor = useThemeColor({}, 'primary');
 
-  const renderNotificationItem = ({ item }: { item: typeof NOTIFICATIONS[0] }) => (
-    <TouchableOpacity 
-      style={[
-        styles.notificationItem, 
-        { backgroundColor: item.read ? 'transparent' : `${item.color}08` }
-      ]}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
-        <IconSymbol name={item.icon as any} size={24} color={item.color} />
-      </View>
-      
-      <View style={styles.content}>
-        <View style={styles.headerRow}>
-          <ThemedText type="defaultSemiBold" style={styles.title}>{item.title}</ThemedText>
-          {!item.read && <View style={[styles.dot, { backgroundColor: item.color }]} />}
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchNotifications = async (showLoading: boolean = true) => {
+    try {
+      if (showLoading) {
+        setIsLoading(true);
+      }
+      setError(null);
+      const data = await getMyNotifications(false);
+      setNotifications(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load notifications');
+      console.error('Error fetching notifications:', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    fetchNotifications(false);
+  }, []);
+
+  const handleNotificationPress = async (notification: Notification) => {
+    if (!notification.isRead) {
+      try {
+        await markNotificationAsRead(notification.notificationId);
+        // Update local state
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.notificationId === notification.notificationId
+              ? { ...n, isRead: true }
+              : n
+          )
+        );
+      } catch (err) {
+        console.error('Error marking notification as read:', err);
+      }
+    }
+    // TODO: Navigate based on notification type
+    // e.g., if assignmentId, navigate to assignment details
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, isRead: true }))
+      );
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const renderNotificationItem = ({ item }: { item: Notification }) => {
+    const { icon, color } = getNotificationStyle(item.type);
+    
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.notificationItem, 
+          { backgroundColor: item.isRead ? 'transparent' : `${color}08` }
+        ]}
+        activeOpacity={0.7}
+        onPress={() => handleNotificationPress(item)}
+      >
+        <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
+          <IconSymbol name={icon as any} size={24} color={color} />
         </View>
-        <ThemedText type="default" style={styles.message} numberOfLines={2}>{item.message}</ThemedText>
-        <ThemedText type="caption" style={styles.time}>{item.time}</ThemedText>
-      </View>
-    </TouchableOpacity>
+        
+        <View style={styles.content}>
+          <View style={styles.headerRow}>
+            <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={1}>
+              {item.title}
+            </ThemedText>
+            {!item.isRead && <View style={[styles.dot, { backgroundColor: color }]} />}
+          </View>
+          <ThemedText type="default" style={styles.message} numberOfLines={2}>
+            {item.message}
+          </ThemedText>
+          <ThemedText type="caption" style={styles.time}>
+            {formatRelativeTime(item.createdAt)}
+          </ThemedText>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <IconSymbol name="bell.slash" size={64} color={Colors.light.icon} />
+      <ThemedText type="subtitle" style={styles.emptyTitle}>
+        No Notifications
+      </ThemedText>
+      <ThemedText type="default" style={styles.emptyMessage}>
+        You're all caught up! Check back later for updates.
+      </ThemedText>
+    </View>
   );
+
+  const renderErrorState = () => (
+    <View style={styles.emptyContainer}>
+      <IconSymbol name="exclamationmark.triangle" size={64} color={Colors.light.error} />
+      <ThemedText type="subtitle" style={styles.emptyTitle}>
+        Failed to Load
+      </ThemedText>
+      <ThemedText type="default" style={styles.emptyMessage}>
+        {error}
+      </ThemedText>
+      <TouchableOpacity
+        style={[styles.retryButton, { backgroundColor: primaryColor }]}
+        onPress={() => fetchNotifications()}
+      >
+        <ThemedText type="default" style={styles.retryButtonText}>
+          Retry
+        </ThemedText>
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (isLoading) {
+    return (
+      <ThemedView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.header}>
+            <ThemedText type="largeTitle">Notifications</ThemedText>
+          </View>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={primaryColor} />
+            <ThemedText type="default" style={styles.loadingText}>
+              Loading notifications...
+            </ThemedText>
+          </View>
+        </SafeAreaView>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <ThemedText type="largeTitle">Notifications</ThemedText>
-          <TouchableOpacity>
-            <ThemedText type="link">Mark all as read</ThemedText>
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <ThemedText type="largeTitle">Notifications</ThemedText>
+            {unreadCount > 0 && (
+              <View style={[styles.badge, { backgroundColor: Colors.light.error }]}>
+                <ThemedText type="caption" style={styles.badgeText}>
+                  {unreadCount}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+          {unreadCount > 0 && (
+            <TouchableOpacity onPress={handleMarkAllAsRead}>
+              <ThemedText type="link">Mark all as read</ThemedText>
+            </TouchableOpacity>
+          )}
         </View>
 
-        <FlatList
-          data={NOTIFICATIONS}
-          renderItem={renderNotificationItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
+        {error ? (
+          renderErrorState()
+        ) : (
+          <FlatList
+            data={notifications}
+            renderItem={renderNotificationItem}
+            keyExtractor={(item) => item.notificationId.toString()}
+            contentContainerStyle={[
+              styles.listContent,
+              notifications.length === 0 && styles.emptyListContent,
+            ]}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListEmptyComponent={renderEmptyState}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={primaryColor}
+                colors={[primaryColor]}
+              />
+            }
+          />
+        )}
       </SafeAreaView>
     </ThemedView>
   );
@@ -128,8 +286,29 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     marginBottom: Spacing.sm,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  badge: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   listContent: {
     paddingBottom: Spacing.xl,
+  },
+  emptyListContent: {
+    flex: 1,
   },
   notificationItem: {
     flexDirection: 'row',
@@ -154,6 +333,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
+    flex: 1,
+    marginRight: Spacing.sm,
   },
   dot: {
     width: 8,
@@ -172,5 +353,38 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: 'rgba(0,0,0,0.05)',
     marginLeft: 80, 
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    opacity: 0.6,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyTitle: {
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  emptyMessage: {
+    textAlign: 'center',
+    opacity: 0.6,
+  },
+  retryButton: {
+    marginTop: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

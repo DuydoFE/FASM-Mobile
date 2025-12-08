@@ -33,20 +33,44 @@ export default function TabLayout() {
           default: {},
         }),
       }}>
+      {/* Student Home Tab - only for students */}
       <Tabs.Screen
         name="index"
         options={{
-          title: isInstructor ? 'Dashboard' : 'Home',
+          title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
+          // Only show for Student, hide for Instructor
+          href: !isInstructor ? undefined : null,
         }}
       />
+      {/* Instructor Dashboard Tab - only for instructors */}
+      <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="square.grid.2x2.fill" color={color} />,
+          // Only show for Instructor
+          href: isLoggedIn && isInstructor ? undefined : null,
+        }}
+      />
+      {/* Student Classes Tab - only for students */}
       <Tabs.Screen
         name="classes"
         options={{
-          title: isInstructor ? 'My Class' : 'Classes',
+          title: 'Classes',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="book.fill" color={color} />,
-          // Show for logged in users (both Student and Instructor)
-          href: isLoggedIn ? '/(tabs)/classes' : null,
+          // Only show for Student, hide for Instructor
+          href: isLoggedIn && !isInstructor ? undefined : null,
+        }}
+      />
+      {/* Instructor My Class Tab - only for instructors */}
+      <Tabs.Screen
+        name="my-class"
+        options={{
+          title: 'My Class',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="book.fill" color={color} />,
+          // Only show for Instructor
+          href: isLoggedIn && isInstructor ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -55,7 +79,7 @@ export default function TabLayout() {
           title: 'Assignments',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="doc.text.fill" color={color} />,
           // Only show for Instructor, hide for Student and not logged in
-          href: isLoggedIn && isInstructor ? '/(tabs)/assignments' : null,
+          href: isLoggedIn && isInstructor ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -64,7 +88,7 @@ export default function TabLayout() {
           title: 'Explore',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="safari.fill" color={color} />,
           // Only show for Student, hide for Instructor
-          href: isLoggedIn && isStudent ? '/(tabs)/explore' : null,
+          href: isLoggedIn && isStudent ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -73,7 +97,7 @@ export default function TabLayout() {
           title: 'Notifications',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="bell.fill" color={color} />,
           // Show for logged in users (both Student and Instructor)
-          href: isLoggedIn ? '/(tabs)/notifications' : null,
+          href: isLoggedIn ? undefined : null,
         }}
       />
       <Tabs.Screen

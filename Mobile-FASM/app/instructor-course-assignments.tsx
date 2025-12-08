@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -15,7 +16,7 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { getAssignmentsByCourseInstance } from '@/services/assignment.service';
+import { deleteAssignment, getAssignmentsByCourseInstance, publishAssignment } from '@/services/assignment.service';
 import { Assignment } from '@/types/api.types';
 
 // Filter status options
@@ -50,6 +51,7 @@ export default function InstructorCourseAssignmentsScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<StatusFilter>('All');
+  const [isActionLoading, setIsActionLoading] = useState<number | null>(null);
 
   const courseInstanceId = params.courseInstanceId ? parseInt(params.courseInstanceId, 10) : null;
   
@@ -271,8 +273,81 @@ export default function InstructorCourseAssignmentsScreen() {
     });
   };
 
+  const handlePublishAssignment = (assignment: Assignment) => {
+    Alert.alert(
+      'Publish Assignment',
+      `Are you sure you want to publish "${assignment.title}"? This will make the assignment visible to students based on its start date.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Publish',
+          style: 'default',
+          onPress: async () => {
+            try {
+              setIsActionLoading(assignment.assignmentId);
+              await publishAssignment(assignment.assignmentId);
+              Alert.alert('Success', 'Assignment published successfully!');
+              fetchAssignments(true);
+            } catch (err) {
+              console.error('Error publishing assignment:', err);
+              Alert.alert(
+                'Error',
+                err instanceof Error ? err.message : 'Failed to publish assignment. Please try again.'
+              );
+            } finally {
+              setIsActionLoading(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAssignment = (assignment: Assignment) => {
+    Alert.alert(
+      'Delete Assignment',
+      `Are you sure you want to delete "${assignment.title}"? This action cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsActionLoading(assignment.assignmentId);
+              await deleteAssignment(assignment.assignmentId);
+              Alert.alert('Success', 'Assignment deleted successfully!');
+              fetchAssignments(true);
+            } catch (err) {
+              console.error('Error deleting assignment:', err);
+              Alert.alert(
+                'Error',
+                err instanceof Error ? err.message : 'Failed to delete assignment. Please try again.'
+              );
+            } finally {
+              setIsActionLoading(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const isDraftAssignment = (assignment: Assignment): boolean => {
+    return assignment.status.toLowerCase() === 'draft' ||
+           assignment.uiStatus?.toLowerCase() === 'draft';
+  };
+
   const renderAssignmentCard = (assignment: Assignment) => {
     const statusColor = getStatusColor(assignment.uiStatus || assignment.status);
+    const isDraft = isDraftAssignment(assignment);
+    const isCurrentActionLoading = isActionLoading === assignment.assignmentId;
 
     return (
       <TouchableOpacity
@@ -280,7 +355,15 @@ export default function InstructorCourseAssignmentsScreen() {
         style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}
         activeOpacity={0.8}
         onPress={() => handleAssignmentPress(assignment)}
+        disabled={isCurrentActionLoading}
       >
+        {/* Loading Overlay */}
+        {isCurrentActionLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="small" color={primaryColor} />
+          </View>
+        )}
+
         {/* Header with Status */}
         <View style={styles.cardHeader}>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
@@ -339,21 +422,21 @@ export default function InstructorCourseAssignmentsScreen() {
         <View style={styles.infoRow}>
           {assignment.daysUntilDeadline !== null && (
             <View style={styles.daysInfo}>
-              <IconSymbol 
-                name={assignment.daysUntilDeadline < 0 ? "exclamationmark.triangle.fill" : "calendar"} 
-                size={12} 
-                color={assignment.daysUntilDeadline < 0 ? Colors.light.error : Colors.light.icon} 
+              <IconSymbol
+                name={assignment.daysUntilDeadline < 0 ? "exclamationmark.triangle.fill" : "calendar"}
+                size={12}
+                color={assignment.daysUntilDeadline < 0 ? Colors.light.error : Colors.light.icon}
               />
-              <ThemedText 
-                type="caption" 
+              <ThemedText
+                type="caption"
                 style={[
                   styles.daysText,
                   assignment.daysUntilDeadline < 0 && { color: Colors.light.error }
                 ]}
               >
-                {assignment.daysUntilDeadline < 0 
+                {assignment.daysUntilDeadline < 0
                   ? `${Math.abs(assignment.daysUntilDeadline)} days overdue`
-                  : assignment.daysUntilDeadline === 0 
+                  : assignment.daysUntilDeadline === 0
                     ? 'Due today'
                     : `${assignment.daysUntilDeadline} days left`
                 }
@@ -393,6 +476,34 @@ export default function InstructorCourseAssignmentsScreen() {
             </ThemedText>
           )}
         </View>
+
+        {/* Draft Actions */}
+        {isDraft && (
+          <View style={[styles.draftActionsContainer, { borderTopColor: borderColor }]}>
+            <TouchableOpacity
+              style={[styles.draftActionButton, styles.publishButton]}
+              onPress={() => handlePublishAssignment(assignment)}
+              disabled={isCurrentActionLoading}
+              activeOpacity={0.7}
+            >
+              <IconSymbol name="paperplane.fill" size={14} color="#FFFFFF" />
+              <ThemedText type="caption" style={styles.draftActionButtonText}>
+                Publish Assignment
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.draftActionButton, styles.deleteButton]}
+              onPress={() => handleDeleteAssignment(assignment)}
+              disabled={isCurrentActionLoading}
+              activeOpacity={0.7}
+            >
+              <IconSymbol name="trash.fill" size={14} color="#FFFFFF" />
+              <ThemedText type="caption" style={styles.draftActionButtonText}>
+                Delete Assignment
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -743,5 +854,42 @@ const styles = StyleSheet.create({
   weightText: {
     opacity: 0.5,
     fontSize: 11,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    borderRadius: BorderRadius.lg,
+  },
+  draftActionsContainer: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    paddingTop: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  draftActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
+  },
+  publishButton: {
+    backgroundColor: Colors.light.success,
+  },
+  deleteButton: {
+    backgroundColor: Colors.light.error,
+  },
+  draftActionButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 12,
   },
 });

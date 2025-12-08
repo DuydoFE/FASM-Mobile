@@ -13,6 +13,10 @@ const ENDPOINTS = {
     `/api/Assignment/${assignmentId}/details`,
   getPeerReviewTracking: (assignmentId: number) =>
     `/api/StudentReview/assignment/${assignmentId}/tracking`,
+  publishAssignment: (assignmentId: number) =>
+    `/api/Assignment/${assignmentId}/publish`,
+  deleteAssignment: (assignmentId: number) =>
+    `/api/Assignment/${assignmentId}`,
 };
 
 /**
@@ -102,8 +106,68 @@ export const getPeerReviewTracking = async (
   }
 };
 
+/**
+ * Publish an assignment (changes status from Draft to Upcoming/Active based on StartDate)
+ * @param assignmentId - The ID of the assignment to publish
+ * @returns Promise with success status
+ */
+export const publishAssignment = async (
+  assignmentId: number
+): Promise<boolean> => {
+  try {
+    const response = await apiClient.put<{ statusCode: number; message: string; errors?: Array<{ message: string }> }>(
+      ENDPOINTS.publishAssignment(assignmentId)
+    );
+    
+    if (response.data.statusCode === 200) {
+      return true;
+    }
+    
+    // Handle error cases
+    if (response.data.errors && response.data.errors.length > 0) {
+      throw new Error(response.data.errors[0].message);
+    }
+    
+    throw new Error(response.data.message || 'Failed to publish assignment');
+  } catch (error) {
+    console.error('Error publishing assignment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an assignment by ID
+ * @param assignmentId - The ID of the assignment to delete
+ * @returns Promise with success status
+ */
+export const deleteAssignment = async (
+  assignmentId: number
+): Promise<boolean> => {
+  try {
+    const response = await apiClient.delete<{ statusCode: number; message: string; errors?: Array<{ message: string }> }>(
+      ENDPOINTS.deleteAssignment(assignmentId)
+    );
+    
+    if (response.data.statusCode === 200) {
+      return true;
+    }
+    
+    // Handle error cases
+    if (response.data.errors && response.data.errors.length > 0) {
+      throw new Error(response.data.errors[0].message);
+    }
+    
+    throw new Error(response.data.message || 'Failed to delete assignment');
+  } catch (error) {
+    console.error('Error deleting assignment:', error);
+    throw error;
+  }
+};
+
 export default {
   getAssignmentsByCourseInstance,
   getAssignmentDetails,
   getPeerReviewTracking,
+  publishAssignment,
+  deleteAssignment,
 };

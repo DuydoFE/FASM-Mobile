@@ -53,17 +53,6 @@ export default function HomeScreen() {
               icon="bell.fill"
               onPress={() => router.push('/(tabs)/notifications')}
             />
-            <FeatureCard
-              title="Grades"
-              subtitle="GPA: 3.8"
-              color={Colors.light.success}
-              icon="graduationcap.fill"
-              onPress={() => {
-                // Grades page not implemented yet, maybe show a modal or alert
-                // For now, we can navigate to profile or keep it as is
-                router.push('/(tabs)/profile');
-              }}
-            />
           </View>
         </View>
 
@@ -101,7 +90,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
   },
   activityContainer: {
     borderRadius: 16,

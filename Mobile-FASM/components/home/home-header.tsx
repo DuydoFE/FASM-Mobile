@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { InstructorSearchBar } from './instructor-search-bar';
+import { StudentSearchBar } from './student-search-bar';
 
 /**
  * Get greeting based on current time of day
@@ -91,13 +93,8 @@ export function HomeHeader() {
         </TouchableOpacity>
       </View>
       
-      {!isInstructor && (
-        <View style={styles.searchContainer}>
-          <View style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}>
-            <IconSymbol name="magnifyingglass" size={18} color={Colors.light.icon} style={styles.searchIcon} />
-            <ThemedText style={styles.placeholder}>Search assignments, classes...</ThemedText>
-          </View>
-        </View>
+      {isLoggedIn && (
+        isInstructor ? <InstructorSearchBar /> : <StudentSearchBar />
       )}
     </View>
   );

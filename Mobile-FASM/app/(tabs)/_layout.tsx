@@ -87,8 +87,8 @@ export default function TabLayout() {
         options={{
           title: 'Explore',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="safari.fill" color={color} />,
-          // Only show for Student, hide for Instructor
-          href: isLoggedIn && isStudent ? undefined : null,
+          // Hide from Student, only show for Instructor
+          href: isLoggedIn && isInstructor ? undefined : null,
         }}
       />
       <Tabs.Screen

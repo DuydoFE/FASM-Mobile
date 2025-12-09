@@ -3,23 +3,25 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { searchInstructor } from '@/services/search.service';
+import { searchInstructor, searchStudent } from '@/services/search.service';
+import { useAppSelector } from '@/store';
+import { selectCurrentUser } from '@/store/slices/authSlice';
 import {
-    SearchAssignment,
-    SearchCriteria,
-    SearchData,
-    SearchFeedback,
-    SearchSubmission,
-    SearchSummary,
+  SearchAssignment,
+  SearchCriteria,
+  SearchData,
+  SearchFeedback,
+  SearchSubmission,
+  SearchSummary,
 } from '@/types/api.types';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,6 +31,12 @@ export default function SearchResultsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { query } = useLocalSearchParams<{ query: string }>();
+  
+  // Get user from Redux store
+  const user = useAppSelector(selectCurrentUser);
+  const isInstructor = user?.roles?.some(
+    (role: string) => role.toLowerCase() === 'instructor'
+  );
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +58,12 @@ export default function SearchResultsScreen() {
     try {
       setLoading(true);
       setError(null);
-      const response = await searchInstructor(query || '');
+      let response;
+      if (isInstructor) {
+        response = await searchInstructor(query || '');
+      } else {
+        response = await searchStudent(query || '');
+      }
       if (response.statusCode === 200 && response.data) {
         setSearchData(response.data);
       } else {
@@ -88,6 +101,7 @@ export default function SearchResultsScreen() {
       key={`assignment-${item.assignmentId}`}
       style={[styles.resultItem, { backgroundColor: backgroundSecondary }]}
       activeOpacity={0.7}
+      onPress={() => router.push(`/assignment-details?assignmentId=${item.assignmentId}`)}
     >
       <View style={[styles.typeIndicator, { backgroundColor: Colors.light.primary }]} />
       <View style={styles.resultContent}>
@@ -119,6 +133,7 @@ export default function SearchResultsScreen() {
       key={`submission-${item.submissionId}`}
       style={[styles.resultItem, { backgroundColor: backgroundSecondary }]}
       activeOpacity={0.7}
+      onPress={() => router.push(`/assignment-details?assignmentTitle=${encodeURIComponent(item.assignmentTitle)}&submissionId=${item.submissionId}`)}
     >
       <View style={[styles.typeIndicator, { backgroundColor: Colors.light.success }]} />
       <View style={styles.resultContent}>
@@ -148,6 +163,7 @@ export default function SearchResultsScreen() {
       key={`feedback-${item.feedbackId}`}
       style={[styles.resultItem, { backgroundColor: backgroundSecondary }]}
       activeOpacity={0.7}
+      onPress={() => router.push(`/assignment-details?assignmentTitle=${encodeURIComponent(item.assignmentTitle)}&reviewId=${item.feedbackId}`)}
     >
       <View style={[styles.typeIndicator, { backgroundColor: Colors.light.accent }]} />
       <View style={styles.resultContent}>
@@ -179,6 +195,7 @@ export default function SearchResultsScreen() {
       key={`criteria-${item.criteriaId}`}
       style={[styles.resultItem, { backgroundColor: backgroundSecondary }]}
       activeOpacity={0.7}
+      onPress={() => router.push(`/rubric-detail?criteriaId=${item.criteriaId}&rubricTitle=${encodeURIComponent(item.rubricTitle)}`)}
     >
       <View style={[styles.typeIndicator, { backgroundColor: Colors.light.warning }]} />
       <View style={styles.resultContent}>
@@ -213,6 +230,7 @@ export default function SearchResultsScreen() {
       key={`summary-${item.summaryId}`}
       style={[styles.resultItem, { backgroundColor: backgroundSecondary }]}
       activeOpacity={0.7}
+      onPress={() => router.push(`/assignment-details?assignmentTitle=${encodeURIComponent(item.assignmentTitle)}&summaryId=${item.summaryId}`)}
     >
       <View style={[styles.typeIndicator, { backgroundColor: '#8B5CF6' }]} />
       <View style={styles.resultContent}>

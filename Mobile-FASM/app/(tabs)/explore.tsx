@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,6 +48,7 @@ const RESOURCES = [
 ];
 
 export default function ExploreScreen() {
+  const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
   const cardBg = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'text');
@@ -57,10 +59,13 @@ export default function ExploreScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <ThemedText type="largeTitle">Explore</ThemedText>
-          <View style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}>
+          <TouchableOpacity
+            style={[styles.searchBar, { backgroundColor: Colors.light.backgroundTertiary }]}
+            onPress={() => router.push('/search-results?query=')}
+          >
             <IconSymbol name="magnifyingglass" size={18} color={Colors.light.icon} style={styles.searchIcon} />
             <ThemedText style={styles.placeholder}>Search resources...</ThemedText>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

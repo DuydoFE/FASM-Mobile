@@ -4,6 +4,7 @@ import { Image, RefreshControl, ScrollView, StyleSheet, View } from 'react-nativ
 
 import { FeatureCard } from '@/components/home/feature-card';
 import { HomeHeader } from '@/components/home/home-header';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
@@ -49,24 +50,70 @@ export default function HomeScreen() {
           </View>
         ) : (
           // Logged in: Show overview
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <ThemedText type="subtitle">Overview</ThemedText>
+          <View>
+            {/* Logo Section */}
+            <View style={styles.logoSection}>
+              <Image 
+                source={require('@/assets/images/FASM.png')} 
+                style={styles.homeLogoLarge}
+              />
             </View>
 
-            <View style={styles.grid}>
-              <FeatureCard
-                title="My Classes"
-                icon="book.fill"
-                color={Colors.light.primary}
-                onPress={() => router.push('/(tabs)/classes')}
-              />
-              <FeatureCard
-                title="Notifications"
-                icon="bell.fill"
-                color={Colors.light.warning}
-                onPress={() => router.push('/(tabs)/notifications')}
-              />
+            {/* Welcome Message */}
+            <View style={styles.welcomeSection}>
+              <ThemedText type="largeTitle" style={styles.welcomeTitle}>
+                Welcome, {user?.firstName}!
+              </ThemedText>
+              <ThemedText type="default" style={styles.welcomeSubtitle}>
+                Manage your assignments and collaborate with peers
+              </ThemedText>
+            </View>
+
+            {/* Overview Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText type="subtitle">Overview</ThemedText>
+              </View>
+
+              <View style={styles.grid}>
+                <FeatureCard
+                  title="My Classes"
+                  icon="book.fill"
+                  color={Colors.light.primary}
+                  onPress={() => router.push('/(tabs)/classes')}
+                />
+                <FeatureCard
+                  title="Notifications"
+                  icon="bell.fill"
+                  color={Colors.light.warning}
+                  onPress={() => router.push('/(tabs)/notifications')}
+                />
+              </View>
+            </View>
+
+            {/* Quick Tips Section */}
+            <View style={styles.section}>
+              <ThemedText type="subtitle">Quick Tips</ThemedText>
+              <View style={styles.tipsContainer}>
+                <View style={styles.tipItem}>
+                  <IconSymbol name="star.fill" size={20} color={Colors.light.success} />
+                  <ThemedText type="default" style={styles.tipText}>
+                    Check your classes for new assignments
+                  </ThemedText>
+                </View>
+                <View style={styles.tipItem}>
+                  <IconSymbol name="person.2.fill" size={20} color={Colors.light.info} />
+                  <ThemedText type="default" style={styles.tipText}>
+                    Review and provide feedback to peers
+                  </ThemedText>
+                </View>
+                <View style={styles.tipItem}>
+                  <IconSymbol name="checkmark.circle.fill" size={20} color={Colors.light.success} />
+                  <ThemedText type="default" style={styles.tipText}>
+                    Submit completed assignments on time
+                  </ThemedText>
+                </View>
+              </View>
             </View>
           </View>
         )}
@@ -93,6 +140,25 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     textAlign: 'center',
   },
+  logoSection: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+  },
+  homeLogoLarge: {
+    width: 180,
+    height: 120,
+    resizeMode: 'contain',
+  },
+  welcomeSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  welcomeTitle: {
+    marginBottom: Spacing.sm,
+  },
+  welcomeSubtitle: {
+    opacity: 0.7,
+  },
   section: {
     marginTop: Spacing.lg,
     paddingHorizontal: Spacing.lg,
@@ -107,6 +173,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
+  },
+  tipsContainer: {
+    marginTop: Spacing.md,
+    gap: Spacing.md,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
   },
   largeLogo: {
     width: 200,

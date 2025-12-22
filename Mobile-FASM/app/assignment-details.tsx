@@ -370,13 +370,8 @@ export default function AssignmentDetailsScreen() {
               <TouchableOpacity
                 style={[
                   styles.peerReviewButton,
-                  {
-                    backgroundColor: peerReviewTracking.completedReviewsCount < peerReviewTracking.numPeerReviewsRequired
-                      ? primaryColor
-                      : Colors.light.success,
-                  }
+                  { backgroundColor: primaryColor }
                 ]}
-                disabled={peerReviewTracking.completedReviewsCount >= peerReviewTracking.numPeerReviewsRequired}
                 onPress={() => {
                   router.push({
                     pathname: '/peer-review',
@@ -388,9 +383,7 @@ export default function AssignmentDetailsScreen() {
               >
                 <IconSymbol name="pencil.and.outline" size={18} color="#FFFFFF" />
                 <ThemedText type="default" style={styles.peerReviewButtonText}>
-                  {peerReviewTracking.completedReviewsCount >= peerReviewTracking.numPeerReviewsRequired
-                    ? 'All Reviews Completed'
-                    : 'Start Peer Review'}
+                  Start Peer Review
                 </ThemedText>
               </TouchableOpacity>
             </View>

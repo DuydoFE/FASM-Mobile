@@ -64,7 +64,7 @@ export function HomeHeader({ showSearch = true }: HomeHeaderProps) {
   };
 
   return (
-    <View style={[styles.headerContainer, { paddingTop: insets.top + Spacing.sm, backgroundColor }]}>
+    <View style={[styles.headerContainer, { paddingTop: insets.top, backgroundColor }]}>
       <View style={styles.logoSection}>
         <Image 
           source={require('@/assets/images/FASM.png')} 
@@ -113,50 +113,52 @@ export function HomeHeader({ showSearch = true }: HomeHeaderProps) {
 const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   logoSection: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xs,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xs,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatarContainer: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.md,
+    marginRight: Spacing.sm,
     ...Shadows.light.sm,
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
   },
   greetingContainer: {
     justifyContent: 'center',
   },
   greeting: {
     opacity: 0.6,
-    marginBottom: 2,
+    marginBottom: 0,
+    fontSize: 12,
   },
   username: {
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 20,
   },
   notificationBtn: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     justifyContent: 'center',
@@ -193,8 +195,8 @@ const styles = StyleSheet.create({
   loginButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
     ...Shadows.light.sm,
   },
@@ -203,6 +205,6 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
   },
 });

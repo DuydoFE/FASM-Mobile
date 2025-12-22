@@ -4,9 +4,9 @@ import { Image, RefreshControl, ScrollView, StyleSheet, View } from 'react-nativ
 
 import { FeatureCard } from '@/components/home/feature-card';
 import { HomeHeader } from '@/components/home/home-header';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Spacing } from '@/constants/theme';
 import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/store/slices/authSlice';

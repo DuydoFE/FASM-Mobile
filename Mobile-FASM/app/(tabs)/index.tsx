@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View, Image } from 'react-native';
+import { Image, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { FeatureCard } from '@/components/home/feature-card';
 import { HomeHeader } from '@/components/home/home-header';

@@ -6,7 +6,7 @@ import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/store/slices/authSlice';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InstructorSearchBar } from './instructor-search-bar';
 import { StudentSearchBar } from './student-search-bar';

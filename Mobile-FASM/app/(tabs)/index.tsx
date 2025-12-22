@@ -7,7 +7,6 @@ import { HomeHeader } from '@/components/home/home-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/store/slices/authSlice';
 

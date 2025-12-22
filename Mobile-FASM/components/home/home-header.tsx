@@ -30,7 +30,11 @@ const getInitials = (firstName?: string, lastName?: string): string => {
   return first + last || 'U';
 };
 
-export function HomeHeader() {
+interface HomeHeaderProps {
+  showSearch?: boolean;
+}
+
+export function HomeHeader({ showSearch = true }: HomeHeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const primaryColor = useThemeColor({}, 'primary');
@@ -93,7 +97,7 @@ export function HomeHeader() {
         </TouchableOpacity>
       </View>
       
-      {isLoggedIn && (
+      {showSearch && isLoggedIn && (
         isInstructor ? <InstructorSearchBar /> : <StudentSearchBar />
       )}
     </View>

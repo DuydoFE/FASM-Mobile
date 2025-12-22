@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -39,7 +40,10 @@ const formatRelativeTime = (dateString: string): string => {
 
 // Helper function to get icon and color based on notification type
 const getNotificationStyle = (type: string): { icon: string; color: string } => {
-  switch (type.toLowerCase()) {
+  switch (type?.toLowerCase()) {
+    case 'assignmentactive':
+    case 'assignmentinreview':
+    case 'assignmentclosed':
     case 'assignment':
     case 'new_assignment':
       return { icon: 'doc.text.fill', color: Colors.light.warning };
@@ -61,12 +65,15 @@ const getNotificationStyle = (type: string): { icon: string; color: string } => 
       return { icon: 'info.circle.fill', color: Colors.light.info };
     case 'announcement':
       return { icon: 'megaphone.fill', color: Colors.light.primary };
+    case 'course':
+      return { icon: 'book.fill', color: Colors.light.primary };
     default:
       return { icon: 'bell.fill', color: Colors.light.primary };
   }
 };
 
 export default function NotificationsScreen() {
+  const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
   const cardBg = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'text');
@@ -119,8 +126,63 @@ export default function NotificationsScreen() {
         console.error('Error marking notification as read:', err);
       }
     }
-    // TODO: Navigate based on notification type
-    // e.g., if assignmentId, navigate to assignment details
+    
+    // Navigate based on notification type
+    navigateByNotificationType(notification);
+  };
+
+  const navigateByNotificationType = (notification: Notification) => {
+    const { type, assignmentId, courseInstanceId } = notification;
+    
+    switch (type?.toLowerCase()) {
+      case 'assignmentactive':
+      case 'assignmentinreview':
+      case 'assignmentclosed':
+      case 'new_assignment':
+      case 'assignment':
+        if (assignmentId) {
+          router.push({
+            pathname: '/assignment-details',
+            params: { assignmentId: assignmentId.toString() },
+          });
+        }
+        break;
+      
+      case 'grade':
+      case 'grade_posted':
+        if (assignmentId) {
+          router.push({
+            pathname: '/assignment-details',
+            params: { assignmentId: assignmentId.toString() },
+          });
+        }
+        break;
+      
+      case 'review':
+      case 'peer_review':
+        if (assignmentId) {
+          router.push({
+            pathname: '/peer-review',
+            params: { assignmentId: assignmentId.toString() },
+          });
+        }
+        break;
+      
+      case 'submission':
+      case 'course':
+        if (courseInstanceId) {
+          router.push({
+            pathname: '/course-assignments',
+            params: { courseInstanceId: courseInstanceId.toString() },
+          });
+        }
+        break;
+      
+      default:
+        // If no specific route, navigate to notifications
+        console.log('No navigation route for notification type:', type);
+        break;
+    }
   };
 
   const handleMarkAllAsRead = async () => {

@@ -6,7 +6,7 @@ import { useAppSelector } from '@/store';
 import { selectCurrentUser } from '@/store/slices/authSlice';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InstructorSearchBar } from './instructor-search-bar';
 import { StudentSearchBar } from './student-search-bar';
@@ -65,6 +65,12 @@ export function HomeHeader({ showSearch = true }: HomeHeaderProps) {
 
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top + Spacing.sm, backgroundColor }]}>
+      <View style={styles.logoSection}>
+        <Image 
+          source={require('@/assets/images/FASM.png')} 
+          style={{ width: 60, height: 40, resizeMode: 'contain' }} 
+        />
+      </View>
       <View style={styles.headerContent}>
         {isLoggedIn ? (
           // Logged in: Show avatar and user info
@@ -110,6 +116,9 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  logoSection: {
+    marginBottom: Spacing.md,
   },
   headerContent: {
     flexDirection: 'row',

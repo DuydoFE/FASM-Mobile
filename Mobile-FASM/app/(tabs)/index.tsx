@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View, Image } from 'react-native';
 
 import { FeatureCard } from '@/components/home/feature-card';
 import { HomeHeader } from '@/components/home/home-header';
@@ -33,7 +33,22 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {user && (
+        {!user ? (
+          // Not logged in: Show large logo and tagline
+          <View style={styles.centerContainer}>
+            <Image 
+              source={require('@/assets/images/FASM.png')} 
+              style={styles.largeLogo}
+            />
+            <ThemedText type="largeTitle" style={styles.tagline}>
+              Fast Assignment
+            </ThemedText>
+            <ThemedText type="largeTitle" style={styles.tagline}>
+              Management System
+            </ThemedText>
+          </View>
+        ) : (
+          // Logged in: Show overview
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <ThemedText type="subtitle">Overview</ThemedText>
@@ -65,7 +80,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingBottom: 120,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  tagline: {
+    marginTop: Spacing.lg,
+    textAlign: 'center',
   },
   section: {
     marginTop: Spacing.lg,
@@ -81,5 +107,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
+  },
+  largeLogo: {
+    width: 200,
+    height: 140,
+    resizeMode: 'contain',
   },
 });

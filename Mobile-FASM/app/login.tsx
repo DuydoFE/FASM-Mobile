@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -139,12 +140,10 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.logoSection}>
-              <View style={[styles.logoContainer, { backgroundColor: primaryColor }]}>
-                <IconSymbol name="book.fill" size={40} color="#FFFFFF" />
-              </View>
-              <ThemedText type="largeTitle" style={styles.appName}>
-                FASM
-              </ThemedText>
+              <Image 
+                source={require('@/assets/images/FASM.png')} 
+                style={styles.logo}
+              />
               <ThemedText style={styles.appTagline}>
                 Fast Assignment Management System
               </ThemedText>
@@ -330,5 +329,10 @@ const styles = StyleSheet.create({
   },
   loginButtonDisabled: {
     opacity: 0.6,
+  },
+  logo: {
+    width: 120,
+    height: 80,
+    resizeMode: 'contain',
   },
 });

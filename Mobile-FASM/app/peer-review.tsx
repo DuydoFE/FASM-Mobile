@@ -1,15 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Linking,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -331,7 +331,7 @@ export default function PeerReviewScreen() {
       });
       setAiSummaries(aiSummaryMap);
 
-      // Optionally auto-fill scores and feedbacks from AI
+      // Auto-fill scores and feedbacks from AI
       const newScores: Record<number, string> = { ...scores };
       const newFeedbacks: Record<number, string> = { ...feedbacks };
       aiResult.feedbacks.forEach((result) => {
@@ -341,7 +341,7 @@ export default function PeerReviewScreen() {
       setScores(newScores);
       setFeedbacks(newFeedbacks);
 
-      Alert.alert('Success', 'AI summary generated successfully!');
+      // AI summary automatically populates in the UI, no popup needed
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to generate AI summary. Please try again.');
     } finally {
@@ -910,6 +910,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: '#374151',
+    marginTop: Spacing.xs,
   },
   feedbackInput: {
     borderWidth: 1,

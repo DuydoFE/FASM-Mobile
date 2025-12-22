@@ -8,7 +8,7 @@ import apiClient from './api';
 
 const ENDPOINTS = {
   getMyNotifications: '/api/Notifications/my-notifications',
-  markAsRead: (notificationId: number) => `/api/Notifications/${notificationId}/read`,
+  markAsRead: (notificationId: number) => `/api/Notifications/${notificationId}/mark-as-read`,
   markAllAsRead: '/api/Notifications/mark-all-read',
 };
 
@@ -53,11 +53,15 @@ export const markNotificationAsRead = async (
   notificationId: number
 ): Promise<boolean> => {
   try {
-    const response = await apiClient.put<{ statusCode: number; message: string; errors?: Array<{ message: string }> }>(
-      ENDPOINTS.markAsRead(notificationId)
-    );
+    const response = await apiClient.put<{
+      statusCode: number;
+      message: string;
+      data: boolean;
+      errors?: Array<{ field: string; message: string; suggestion: string }>;
+      warnings?: Array<{ field: string; message: string; suggestion: string }>;
+    }>(ENDPOINTS.markAsRead(notificationId));
     
-    if (response.data.statusCode === 200) {
+    if (response.data.statusCode >= 200 && response.data.statusCode < 300 && response.data.data === true) {
       return true;
     }
     
@@ -66,7 +70,7 @@ export const markNotificationAsRead = async (
       throw new Error(response.data.errors[0].message);
     }
     
-    return false;
+    throw new Error(response.data.message || 'Failed to mark notification as read');
   } catch (error) {
     console.error('Error marking notification as read:', error);
     throw error;
@@ -79,11 +83,15 @@ export const markNotificationAsRead = async (
  */
 export const markAllNotificationsAsRead = async (): Promise<boolean> => {
   try {
-    const response = await apiClient.put<{ statusCode: number; message: string; errors?: Array<{ message: string }> }>(
-      ENDPOINTS.markAllAsRead
-    );
+    const response = await apiClient.put<{
+      statusCode: number;
+      message: string;
+      data: boolean;
+      errors?: Array<{ field: string; message: string; suggestion: string }>;
+      warnings?: Array<{ field: string; message: string; suggestion: string }>;
+    }>(ENDPOINTS.markAllAsRead);
     
-    if (response.data.statusCode === 200) {
+    if (response.data.statusCode >= 200 && response.data.statusCode < 300 && response.data.data === true) {
       return true;
     }
     
@@ -92,7 +100,7 @@ export const markAllNotificationsAsRead = async (): Promise<boolean> => {
       throw new Error(response.data.errors[0].message);
     }
     
-    return false;
+    throw new Error(response.data.message || 'Failed to mark all notifications as read');
   } catch (error) {
     console.error('Error marking all notifications as read:', error);
     throw error;

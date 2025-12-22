@@ -1,12 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -370,8 +370,11 @@ export default function AssignmentDetailsScreen() {
               <TouchableOpacity
                 style={[
                   styles.peerReviewButton,
-                  { backgroundColor: primaryColor }
+                  { 
+                    backgroundColor: assignment.status === 'InReview' ? primaryColor : Colors.light.icon,
+                  }
                 ]}
+                disabled={assignment.status !== 'InReview'}
                 onPress={() => {
                   router.push({
                     pathname: '/peer-review',
@@ -383,7 +386,7 @@ export default function AssignmentDetailsScreen() {
               >
                 <IconSymbol name="pencil.and.outline" size={18} color="#FFFFFF" />
                 <ThemedText type="default" style={styles.peerReviewButtonText}>
-                  Start Peer Review
+                  {assignment.status === 'InReview' ? 'Start Peer Review' : 'Peer Review Unavailable'}
                 </ThemedText>
               </TouchableOpacity>
             </View>

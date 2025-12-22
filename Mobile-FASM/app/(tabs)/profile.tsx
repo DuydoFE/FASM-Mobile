@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -40,42 +40,14 @@ export default function ProfileScreen() {
   const initials = getInitials(user?.firstName, user?.lastName);
   const role = user?.roles?.[0] || 'User';
 
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-
-  const handleLogout = () => {
-    // Clear user data from Redux store
-    dispatch(logout());
-    router.replace('/login');
-  };
-
   const handleLogin = () => {
     router.push('/login');
   };
 
-  const renderSettingItem = ({ icon, title, type = 'link', value, onValueChange, color }: any) => (
-    <TouchableOpacity 
-      style={[styles.settingItem, { borderBottomColor: borderColor }]}
-      activeOpacity={type === 'link' ? 0.7 : 1}
-      disabled={type === 'switch'}
-    >
-      <View style={[styles.settingIcon, { backgroundColor: color ? `${color}15` : 'rgba(0,0,0,0.05)' }]}>
-        <IconSymbol name={icon} size={20} color={color || textColor} />
-      </View>
-      <ThemedText type="default" style={styles.settingTitle}>{title}</ThemedText>
-      
-      {type === 'switch' ? (
-        <Switch 
-          value={value} 
-          onValueChange={onValueChange}
-          trackColor={{ false: '#767577', true: primaryColor }}
-          thumbColor={'#f4f3f4'}
-        />
-      ) : (
-        <IconSymbol name="chevron.right" size={16} color={Colors.light.icon} />
-      )}
-    </TouchableOpacity>
-  );
+  const handleLogout = () => {
+    dispatch(logout());
+    router.replace('/login');
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -98,54 +70,38 @@ export default function ProfileScreen() {
                   <ThemedText type="caption" style={{ color: primaryColor, fontWeight: '600' }}>{role}</ThemedText>
                 </View>
               </View>
-
-              <View style={styles.section}>
-                <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Account Settings</ThemedText>
-                <View style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}>
-                  {renderSettingItem({ icon: 'person.fill', title: 'Personal Information', color: Colors.light.primary })}
-                  {renderSettingItem({ icon: 'lock.fill', title: 'Security & Password', color: Colors.light.accent })}
-                  {renderSettingItem({ icon: 'bell.fill', title: 'Notifications', type: 'switch', value: notificationsEnabled, onValueChange: setNotificationsEnabled, color: Colors.light.warning })}
-                  {renderSettingItem({ icon: 'moon.fill', title: 'Dark Mode', type: 'switch', value: isDarkMode, onValueChange: setIsDarkMode, color: Colors.light.info })}
-                </View>
-              </View>
             </>
           ) : (
-            // Not logged in: Show login prompt
+            // Not logged in: Show login prompt without logo
             <View style={styles.header}>
-              <View style={[styles.avatarContainer, { backgroundColor: Colors.light.icon }, Shadows.light.md]}>
-                <IconSymbol name="person.fill" size={48} color="#FFFFFF" />
-              </View>
               <ThemedText type="title" style={styles.name}>Welcome to FASM</ThemedText>
               <ThemedText type="default" style={styles.email}>Please login to access your profile</ThemedText>
             </View>
           )}
 
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>Support</ThemedText>
-            <View style={[styles.card, { backgroundColor: cardBg }, Shadows.light.sm]}>
-              {renderSettingItem({ icon: 'questionmark.circle.fill', title: 'Help Center', color: Colors.light.success })}
-              {renderSettingItem({ icon: 'envelope.fill', title: 'Contact Support', color: Colors.light.primary })}
-              {renderSettingItem({ icon: 'doc.text.fill', title: 'Terms & Privacy', color: Colors.light.icon })}
-            </View>
-          </View>
+          <Image
+            source={require('@/assets/images/FASM.png')}
+            style={styles.logoImageCenter}
+            resizeMode="contain"
+          />
 
-          {isLoggedIn ? (
-            // Logged in: Show logout button
-            <TouchableOpacity
-              style={[styles.logoutButton, { borderColor: Colors.light.error }]}
-              onPress={handleLogout}
-            >
-              <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color={Colors.light.error} style={styles.logoutIcon} />
-              <ThemedText type="defaultSemiBold" style={{ color: Colors.light.error }}>Log Out</ThemedText>
-            </TouchableOpacity>
-          ) : (
-            // Not logged in: Show login button
+          {!isLoggedIn && (
             <TouchableOpacity
               style={[styles.loginButton, { backgroundColor: primaryColor }]}
               onPress={handleLogin}
             >
               <IconSymbol name="person.fill" size={20} color="#FFFFFF" style={styles.logoutIcon} />
               <ThemedText type="defaultSemiBold" style={styles.loginButtonText}>Login</ThemedText>
+            </TouchableOpacity>
+          )}
+
+          {isLoggedIn && (
+            <TouchableOpacity
+              style={[styles.logoutButton, { borderColor: Colors.light.error }]}
+              onPress={handleLogout}
+            >
+              <IconSymbol name="rectangle.portrait.and.arrow.right" size={20} color={Colors.light.error} style={styles.logoutIcon} />
+              <ThemedText type="defaultSemiBold" style={{ color: Colors.light.error }}>Log Out</ThemedText>
             </TouchableOpacity>
           )}
 
@@ -170,6 +126,17 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     paddingVertical: Spacing.xl,
+  },
+  logoImage: {
+    width: 200,
+    height: 140,
+    marginBottom: Spacing.lg,
+  },
+  logoImageCenter: {
+    width: 180,
+    height: 120,
+    marginVertical: Spacing.xl,
+    alignSelf: 'center',
   },
   avatarContainer: {
     width: 100,

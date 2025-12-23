@@ -41,6 +41,62 @@ export default function RootLayout() {
               title: 'Assignment Details'
             }}
           />
+          
+          <Stack.Screen
+            name="instructor-course-assignments"
+            options={{
+              headerShown: false,
+              title: 'Course Assignments'
+            }}
+          />
+          
+          <Stack.Screen
+            name="instructor-course-rubrics"
+            options={{
+              headerShown: false,
+              title: 'Course Rubrics'
+            }}
+          />
+          
+          <Stack.Screen
+            name="instructor-manage-student"
+            options={{
+              headerShown: false,
+              title: 'Manage Students'
+            }}
+          />
+          
+          <Stack.Screen
+            name="instructor-statistic-courseinstance"
+            options={{
+              headerShown: false,
+              title: 'Course Statistics'
+            }}
+          />
+          
+          <Stack.Screen
+            name="peer-review"
+            options={{
+              headerShown: false,
+              title: 'Peer Review'
+            }}
+          />
+          
+          <Stack.Screen
+            name="rubric-detail"
+            options={{
+              headerShown: false,
+              title: 'Rubric Details'
+            }}
+          />
+          
+          <Stack.Screen
+            name="search-results"
+            options={{
+              headerShown: false,
+              title: 'Search Results'
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

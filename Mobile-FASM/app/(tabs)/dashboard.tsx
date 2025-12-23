@@ -50,13 +50,6 @@ export default function DashboardScreen() {
               onPress={() => router.push('/(tabs)/my-class' as any)}
             />
             <FeatureCard
-              title="Rubrics"
-              subtitle="Manage rubrics"
-              color={Colors.light.accent}
-              icon="list.bullet.rectangle.fill"
-              onPress={() => router.push('/(tabs)/rubric')}
-            />
-            <FeatureCard
               title="Notifications"
               subtitle="3 New"
               color={Colors.light.warning}

@@ -17,6 +17,22 @@ export const getRubricsByUserId = async (userId: number): Promise<RubricListResp
 };
 
 /**
+ * Get rubrics by user ID and course instance ID
+ * GET /api/Rubric/user/{userId}?courseInstanceId={courseInstanceId}
+ * @param userId - The user ID to fetch rubrics for
+ * @param courseInstanceId - The course instance ID to filter by
+ */
+export const getRubricsByUserIdAndCourseInstance = async (
+  userId: number,
+  courseInstanceId: number
+): Promise<RubricListResponse> => {
+  const response = await apiClient.get<RubricListResponse>(
+    `/api/Rubric/user/${userId}?courseInstanceId=${courseInstanceId}`
+  );
+  return response.data;
+};
+
+/**
  * Get rubric details by ID
  * GET /api/Rubric/{id}
  * @param rubricId - The rubric ID to fetch details for
@@ -28,5 +44,6 @@ export const getRubricById = async (rubricId: number): Promise<RubricDetailRespo
 
 export default {
   getRubricsByUserId,
+  getRubricsByUserIdAndCourseInstance,
   getRubricById,
 };

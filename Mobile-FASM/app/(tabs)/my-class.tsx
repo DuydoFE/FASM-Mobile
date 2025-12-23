@@ -137,6 +137,20 @@ export default function MyClassScreen() {
     }
   };
 
+  const handleNavigateToRubrics = () => {
+    if (selectedCourse) {
+      setShowCourseOptions(false);
+      router.push({
+        pathname: '/instructor-course-rubrics',
+        params: {
+          courseInstanceId: selectedCourse.courseInstanceId.toString(),
+          courseName: selectedCourse.courseName,
+          courseCode: selectedCourse.courseCode,
+        },
+      });
+    }
+  };
+
 
   const renderCourseCard = (course: CourseInstructor, index: number) => {
     const cardColor = getColorForIndex(index);
@@ -263,6 +277,26 @@ export default function MyClassScreen() {
                   <IconSymbol name="chevron.right" size={20} color={Colors.light.primary} />
                 </TouchableOpacity>
   
+                {/* Rubrics Option */}
+                <TouchableOpacity
+                  style={[styles.optionCard, { backgroundColor: `${Colors.light.accent}10` }]}
+                  onPress={handleNavigateToRubrics}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.optionIconContainer, { backgroundColor: Colors.light.accent }]}>
+                    <IconSymbol name="list.bullet.clipboard.fill" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.optionTextContainer}>
+                    <ThemedText type="title" style={styles.optionTitle}>
+                      Rubrics
+                    </ThemedText>
+                    <ThemedText type="caption" style={styles.optionDescription}>
+                      View and manage course rubrics
+                    </ThemedText>
+                  </View>
+                  <IconSymbol name="chevron.right" size={20} color={Colors.light.accent} />
+                </TouchableOpacity>
+
                 {/* Students Option */}
                 <TouchableOpacity
                   style={[styles.optionCard, { backgroundColor: `${Colors.light.success}10` }]}
@@ -339,7 +373,7 @@ export default function MyClassScreen() {
           <View style={styles.sectionHeader}>
             <IconSymbol name="graduationcap.fill" size={20} color={Colors.light.primary} />
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Teaching ({courses.length} {courses.length === 1 ? 'class' : 'classes'})
+              {`Teaching (${courses.length} ${courses.length === 1 ? 'class' : 'classes'})`}
             </ThemedText>
           </View>
           {courses.map((course, index) => renderCourseCard(course, index))}

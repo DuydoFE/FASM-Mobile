@@ -479,14 +479,14 @@ export default function InstructorCourseAssignmentsScreen() {
         {/* Weights Info */}
         <View style={styles.weightsRow}>
           <ThemedText type="caption" style={styles.weightText}>
-            Instructor: {assignment.instructorWeight}%
+            {`Instructor: ${assignment.instructorWeight}%`}
           </ThemedText>
           <ThemedText type="caption" style={styles.weightText}>
-            Peer: {assignment.peerWeight}%
+            {`Peer: ${assignment.peerWeight}%`}
           </ThemedText>
           {assignment.passThreshold && (
             <ThemedText type="caption" style={styles.weightText}>
-              Pass: {assignment.passThreshold}
+              {`Pass: ${assignment.passThreshold}`}
             </ThemedText>
           )}
         </View>
@@ -651,7 +651,7 @@ export default function InstructorCourseAssignmentsScreen() {
           <View style={styles.noResultsContainer}>
             <IconSymbol name="doc.text" size={32} color={Colors.light.icon} />
             <ThemedText type="default" style={styles.noResultsText}>
-              No {selectedFilter !== 'All' ? selectedFilter.toLowerCase() : ''} assignments found
+              {`No ${selectedFilter !== 'All' ? selectedFilter.toLowerCase() + ' ' : ''}assignments found`}
             </ThemedText>
           </View>
         )}
@@ -694,8 +694,7 @@ export default function InstructorCourseAssignmentsScreen() {
         {!isLoading && !error && assignments.length > 0 && (
           <View style={styles.countContainer}>
             <ThemedText type="default" style={styles.countText}>
-              {filteredAssignments.length} Assignment{filteredAssignments.length !== 1 ? 's' : ''}
-              {selectedFilter !== 'All' && ` (${selectedFilter})`}
+              {`${filteredAssignments.length} Assignment${filteredAssignments.length !== 1 ? 's' : ''}${selectedFilter !== 'All' ? ` (${selectedFilter})` : ''}`}
             </ThemedText>
           </View>
         )}
